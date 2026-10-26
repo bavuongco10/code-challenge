@@ -37,7 +37,7 @@ export function AmountPanel({ side }: { side: Side }) {
 
   return (
     <Field
-      className="pixel-inset flex flex-col gap-1 bg-well p-3 focus-within:border-primary"
+      className="pixel-inset flex flex-col gap-1 bg-well p-3 focus-within:[--frame:var(--frame-primary)]"
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
       onFocus={() => setActive(true)}

@@ -100,7 +100,7 @@ Before saying a task is done, run `pnpm check`. `pnpm check` is the single sourc
   `data-[focus]`, `data-[selected]`, `data-[disabled]` and `data-[open]` variants.
 - Don't hand-roll dropdowns, modals or focus traps. Headless UI handles keyboard nav and ARIA.
 - Conditional classes: template strings or a small local helper. Don't add `clsx` / `tailwind-merge` unless needed.
-- Support dark mode with `dark:` variants (the default `prefers-color-scheme` strategy).
+- Dark-only theme (NES navy palette, see `docs/features/swap/impl/design.md`). No light mode, no `dark:` variants.
 
 ## Conventions
 

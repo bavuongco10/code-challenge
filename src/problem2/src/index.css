@@ -1,45 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #e9ecf3;
-  --panel: #ffffff;
-  --well: #f4f5f9;
-  --raised: #dde2ec;
-  --ink: #1a1c2b;
-  --muted: #4a5a72;
-  --dim: #5b6c84;
-  --line: #6b7186;
-  --shadow: #1a1c2b;
-  --primary: #2c4bb0;
-  --accent: #f7cf82;
-  --success: #2e6b1f;
-  --warn: #7a5200;
-  --danger: #b2452a;
-  --on-fill: #ffffff; /* text on primary/danger fills */
-  --on-accent: #1a1c2b; /* text on accent, both modes */
-  --terminal: #0b0c13; /* trade log, dark in both modes */
-  --on-terminal: #b7ee81;
-  --on-terminal-dim: #8193ab;
-  color-scheme: light dark;
+  /* dark navy, NES-style */
+  --paper: #0b1030;
+  --panel: #161d48;
+  --well: #0a0e26;
+  --raised: #262f66;
+  --ink: #f4f4f8;
+  --muted: #a3b2dc;
+  --dim: #7686b4;
+  --line: #f4f4f8;
+  --shadow: #000000;
+  --primary: #3ce0f0; /* cyan */
+  --accent: #ffd23f; /* yellow */
+  --success: #5ce36c; /* green */
+  --warn: #ffd23f;
+  --danger: #ff6b6b;
+  --on-fill: #0b1030; /* text on cyan/green/red fills */
+  --on-accent: #0b1030;
+  --terminal: #050820;
+  --on-terminal: #5ce36c;
+  --on-terminal-dim: #7686b4;
+  /* 12x12 frame, sliced at 4px: empty corners give the NES notched look */
+  --frame-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%23f4f4f8' d='M4 0h4v4H4zM0 4h4v4H0zM8 4h4v4H8zM4 8h4v4H4z'/%3E%3C/svg%3E");
+  --frame-primary: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%233ce0f0' d='M4 0h4v4H4zM0 4h4v4H0zM8 4h4v4H8zM4 8h4v4H4z'/%3E%3C/svg%3E");
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #1a1c2b;
-    --panel: #272b42;
-    --well: #1a1c2b;
-    --raised: #353c55;
-    --ink: #f4f4f4;
-    --muted: #9aafc0;
-    --dim: #8193ab;
-    --line: #717587;
-    --shadow: #0b0c13;
-    --primary: #94ecf5;
-    --success: #b7ee81;
-    --warn: #f7cf82;
-    --danger: #e08360;
-    --on-fill: #1a1c2b;
-  }
+/* per-element frame override (e.g. focus-within:[--frame:var(--frame-primary)]); not inherited so nested frames keep theirs */
+@property --frame {
+  syntax: "*";
+  inherits: false;
 }
 
 @theme {
@@ -68,23 +59,32 @@
 
 @utility pixel-box {
   border: 4px solid var(--ink);
+  border-image: var(--frame, var(--frame-ink)) 4 stretch;
   border-radius: 0;
+  background-clip: padding-box;
   box-shadow: 4px 4px 0 var(--shadow);
 }
 
 @utility pixel-inset {
   border: 4px solid var(--ink);
+  border-image: var(--frame, var(--frame-ink)) 4 stretch;
   border-radius: 0;
-  box-shadow: inset 4px 4px 0 color-mix(in srgb, var(--ink) 25%, transparent);
+  background-clip: padding-box;
+  box-shadow: inset 4px 4px 0 color-mix(in srgb, var(--shadow) 50%, transparent);
 }
 
 @utility pixel-btn {
   border: 4px solid var(--ink);
+  border-image: var(--frame, var(--frame-ink)) 4 stretch;
   border-radius: 0;
-  box-shadow: 4px 4px 0 var(--shadow);
+  background-clip: padding-box;
+  box-shadow:
+    inset -4px -4px 0 color-mix(in srgb, var(--shadow) 30%, transparent),
+    4px 4px 0 var(--shadow);
   &:active:not(:disabled) {
     transform: translate(4px, 4px);
-    box-shadow: none;
+    box-shadow: inset 4px 4px 0
+      color-mix(in srgb, var(--shadow) 30%, transparent);
   }
 }
 

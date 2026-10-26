@@ -36,7 +36,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 | 7   | Settings popover (gear): max slippage, swap deadline                              |
 | 8   | Submit button shows why the form can't be submitted (see Validation)              |
 | 9   | Price loading and error states with Retry                                         |
-| 10  | Light and dark mode, mobile layout                                                |
+| 10  | Dark NES theme, mobile layout                                                     |
 | 11  | Wallet mode switch: Demo (phase 1) / Sepolia (phase 2)                            |
 | 12  | Connect, plus an account menu: address, disconnect, recent activity               |
 | 13  | Balances under each panel and in the token picker ("Your tokens")                 |

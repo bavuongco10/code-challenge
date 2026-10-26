@@ -70,7 +70,7 @@ edit the same lines.
 - [ ] The task's e2e filter passes (`pnpm test:e2e -g "<filter>"`), or the notes say which
       task it is still waiting on
 - [ ] Only files in **Owns** touched
-- [ ] Looks right in light **and** dark (`prefers-color-scheme`) and at 375px wide (UI tasks)
+- [ ] Looks right (dark NES theme) at 375px wide (UI tasks)
 - [ ] Handoff notes filled in
 
 ## Handoff notes template

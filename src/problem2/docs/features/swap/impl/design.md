@@ -1,74 +1,70 @@
 # Design: 8-bit swap
 
-The swap is a retro arcade terminal, dark-first: deep navy page with a faint dot grid, slate
-"windows" with thick white pixel borders and hard black drop shadows, cyan as the action
-colour, gold for the active/selected thing, warm orange for losses and errors, and lime green
-for terminal-style success text. Bitmap fonts, stepped animations. Behaviour is unchanged by
-the look: rules live in `../plan.md`.
+The swap is an NES-style arcade terminal, dark only: dark navy page with a faint dot grid,
+navy "windows" in NES pixel frames (white, notched corners) with hard black drop shadows,
+yellow for the active/selected thing, cyan as the action colour, and green for success and
+terminal text. Press Start 2P + VT323 bitmap fonts, stepped animations. Behaviour is unchanged
+by the look: rules live in `../plan.md`.
 
 ## Palette
 
-Sampled from the reference mockup. Defined once in `src/index.css` as Tailwind theme tokens.
-Components use token classes only (`bg-panel`, `text-ink`, `placeholder:text-dim` …), never raw
-hex. Light mode is a derived "paper" version of the same palette.
+Defined once in `src/index.css` as Tailwind theme tokens. Components use token classes only
+(`bg-panel`, `text-ink`, `placeholder:text-dim` …), never raw hex. There is no light mode:
+`color-scheme: dark`, one set of values.
 
-| Token             | Dark      | Light     | Used for                                                 |
-| ----------------- | --------- | --------- | -------------------------------------------------------- |
-| `paper`           | `#1a1c2b` | `#e9ecf3` | page background                                          |
-| `panel`           | `#272b42` | `#ffffff` | card, dialogs, popovers                                  |
-| `well`            | `#1a1c2b` | `#f4f5f9` | amount panels, inputs (inset)                            |
-| `raised`          | `#353c55` | `#dde2ec` | disabled submit, inactive tabs, account chip             |
-| `ink`             | `#f4f4f4` | `#1a1c2b` | text, input values, pixel borders                        |
-| `muted`           | `#9aafc0` | `#4a5a72` | labels, USD values, balances, disabled labels            |
-| `dim`             | `#8193ab` | `#5b6c84` | placeholders, timestamps, footnotes                      |
-| `line`            | `#717587` | `#6b7186` | secondary borders (inputs inside a panel, dividers)      |
-| `shadow`          | `#0b0c13` | `#1a1c2b` | hard drop shadow                                         |
-| `primary`         | `#94ecf5` | `#2c4bb0` | primary button, focus ring, links, active segment        |
-| `accent`          | `#f7cf82` | `#f7cf82` | logo, flip button, `Auto` tag, selected chip (fill only) |
-| `success`         | `#b7ee81` | `#2e6b1f` | success toast, `Free` fee                                |
-| `warn`            | `#f7cf82` | `#7a5200` | `is-high` slippage, high deadline, pending toast icon    |
-| `danger`          | `#e08360` | `#b2452a` | `is-error`, `is-very-high`, insufficient, error toast    |
-| `on-fill`         | `#1a1c2b` | `#ffffff` | text on `primary` / `danger` fills                       |
-| `on-accent`       | `#1a1c2b` | `#1a1c2b` | text on `accent` fills                                   |
-| `terminal`        | `#0b0c13` | `#0b0c13` | activity log background (dark in both modes)             |
-| `on-terminal`     | `#b7ee81` | `#b7ee81` | activity log text                                        |
-| `on-terminal-dim` | `#8193ab` | `#8193ab` | activity log timestamps                                  |
+| Token             | Value     | Used for                                              |
+| ----------------- | --------- | ----------------------------------------------------- |
+| `paper`           | `#0b1030` | page background                                       |
+| `panel`           | `#161d48` | card, dialogs, popovers                               |
+| `well`            | `#0a0e26` | amount panels, inputs (inset)                         |
+| `raised`          | `#262f66` | disabled submit, inactive tabs, account chip          |
+| `ink`             | `#f4f4f8` | text, input values, pixel frames                      |
+| `muted`           | `#a3b2dc` | labels, USD values, balances, disabled labels         |
+| `dim`             | `#7686b4` | placeholders, timestamps, footnotes                   |
+| `line`            | `#f4f4f8` | secondary borders                                     |
+| `shadow`          | `#000000` | hard drop shadow                                      |
+| `primary`         | `#3ce0f0` | cyan: primary button, focus ring, active segment      |
+| `accent`          | `#ffd23f` | yellow: logo, flip button, `Auto` tag (fill only)     |
+| `success`         | `#5ce36c` | green: success toast, `Free` fee                      |
+| `warn`            | `#ffd23f` | `is-high` slippage, high deadline, pending toast icon |
+| `danger`          | `#ff6b6b` | `is-error`, `is-very-high`, insufficient, error toast |
+| `on-fill`         | `#0b1030` | text on `primary` / `danger` / `success` fills        |
+| `on-accent`       | `#0b1030` | text on `accent` fills                                |
+| `terminal`        | `#050820` | activity log background                               |
+| `on-terminal`     | `#5ce36c` | activity log text                                     |
+| `on-terminal-dim` | `#7686b4` | activity log timestamps                               |
 
 Rules:
 
-- `accent` is a **fill only**. Never use `text-accent` (1.5:1 on light panels); for gold text
-  use `text-warn`.
-- Light `primary` is a deep blue, not cyan: cyan on white is 1.4:1.
+- `accent` is a **fill only**; for yellow text use `text-warn` (same hex, semantic name).
 
 ## Contrast (WCAG 2.2 AA)
 
-Text needs 4.5:1, non-text UI (borders that identify a control, focus rings) 3:1. Computed from the token values (WCAG relative luminance) for
-both schemes:
+Text needs 4.5:1, non-text UI (borders that identify a control, focus rings) 3:1. Computed
+from the token values (WCAG relative luminance):
 
-| Pair                                                | Dark         | Light        |
-| --------------------------------------------------- | ------------ | ------------ |
-| Amount input value (`ink` / `well`)                 | 15.34        | 15.48        |
-| Amount placeholder (`dim` / `well`)                 | 5.38         | 4.91         |
-| Insufficient amount (`danger` / `well`)             | 6.09         | 5.10         |
-| USD value, balance (`muted` / `well`)               | 7.44         | 6.43         |
-| Settings inputs value / placeholder                 | 15.34 / 5.38 | 15.48 / 4.91 |
-| Labels on card (`muted` / `panel`)                  | 6.14         | 7.01         |
-| Disabled submit label (`muted` / `raised`)          | 4.80         | 5.39         |
-| `on-fill` / `primary`                               | 12.51        | 7.66         |
-| `on-fill` / `danger`                                | 6.09         | 5.56         |
-| `on-accent` / `accent`                              | 11.41        | 11.41        |
-| `warn` / `panel`                                    | 9.40         | 6.92         |
-| `success` / `panel`                                 | 10.30        | 6.48         |
-| Focus ring (`primary`) / `panel`, `well`            | 10.31, 12.51 | 7.66, 7.03   |
-| Input border (`line` / `panel`), non-text           | 3.04         | 4.85         |
-| Activity timestamp (`on-terminal-dim` / `terminal`) | 6.22         | 6.22         |
-| Activity log (`on-terminal` / `terminal`)           | 14.46        | 14.46        |
+| Pair                                                | Ratio        |
+| --------------------------------------------------- | ------------ |
+| Amount input value (`ink` / `well`)                 | 17.34        |
+| Amount placeholder (`dim` / `well`)                 | 5.29         |
+| Insufficient amount (`danger` / `well`)             | 6.86         |
+| USD value, balance (`muted` / `well`)               | 9.02         |
+| Settings inputs value / placeholder                 | 17.34 / 5.29 |
+| Labels on card (`muted` / `panel`)                  | 7.64         |
+| Disabled submit label (`muted` / `raised`)          | 5.92         |
+| `on-fill` / `primary`                               | 11.59        |
+| `on-fill` / `danger`                                | 6.69         |
+| `on-accent` / `accent`                              | 12.86        |
+| `warn` / `panel`                                    | 11.16        |
+| `success` / `panel`                                 | 9.71         |
+| `danger` / `panel`                                  | 5.81         |
+| Focus ring (`primary`) / `panel`, `well`            | 10.06, 11.88 |
+| Frame (`ink` / `panel`, `paper`), non-text          | 14.69, 16.92 |
+| Activity timestamp (`on-terminal-dim` / `terminal`) | 5.50         |
+| Activity log (`on-terminal` / `terminal`)           | 11.92        |
 
 Any new colour pair must be added here with its ratio. Placeholders count as text (4.5:1),
 since they carry the format hint (`0`, `0.5`).
-
-Dark mode follows `prefers-color-scheme` (AGENTS.md); tokens swap, so components need no `dark:`
-variants except for rare one-offs.
 
 ## Stacking
 
@@ -98,14 +94,17 @@ Loaded from Google Fonts in `index.html` (no npm dependency):
 
 Tailwind 4 `@utility` blocks in `src/index.css`, used like normal classes:
 
-| Utility       | What it does                                                                |
-| ------------- | --------------------------------------------------------------------------- |
-| `pixel-box`   | `border: 4px solid ink`, `border-radius: 0`, `box-shadow: 4px 4px 0 shadow` |
-| `pixel-inset` | 4px border + inner hard shadow (`inset 4px 4px 0` darker), for wells/inputs |
-| `pixel-btn`   | `pixel-box` + press effect: `:active` moves 4px right/down and drops shadow |
-| `pixel-focus` | `:focus-visible` → 4px `primary` outline, offset 2px, square                |
-| `pixel-steps` | `transition-timing-function: steps(4)` for all transitions                  |
+| Utility       | What it does                                                                     |
+| ------------- | -------------------------------------------------------------------------------- |
+| `pixel-box`   | 4px NES frame (`border-image`, notched corners) + `box-shadow: 4px 4px 0 shadow` |
+| `pixel-inset` | NES frame + inner hard shadow (`inset 4px 4px 0`), for wells/inputs              |
+| `pixel-btn`   | NES frame + bottom-right bevel + drop shadow; `:active` moves 4px and insets     |
+| `pixel-focus` | `:focus-visible` → 4px `primary` outline, offset 2px, square                     |
+| `pixel-steps` | `transition-timing-function: steps(4)` for all transitions                       |
 
+- Frames come from a 12×12 SVG `border-image` sliced at 4px (`--frame-ink`); the empty corner
+  cells give the notch. Override per element with `--frame` (not inherited), e.g.
+  `focus-within:[--frame:var(--frame-primary)]`. Add a new `--frame-*` for a new frame colour.
 - Corners stay square everywhere. No `rounded-*`, no blur, no gradients except the dot grid.
 - Page background: `paper` with a faint dot grid (1px dots every 24px, ~8% `ink`), like the
   reference. Off under `prefers-contrast: more`.
@@ -155,7 +154,7 @@ off (instant state changes). Timings never affect behaviour (e2e uses `page.cloc
 ```
 
 - Card: `pixel-box bg-panel`, centred, `max-w-[480px]`, 16px side gutter on mobile.
-- Panels: `pixel-inset bg-well`. Focus inside a panel → panel border turns `primary`.
+- Panels: `pixel-inset bg-well`. Focus inside a panel → panel frame turns `primary` (`--frame-primary`).
 - Section labels (`You pay`, `Slippage`, card title): Press Start 2P, uppercase, `text-muted`.
 - Flip button: `accent` fill with `on-accent` arrows, overlapping both panels.
 - Selected chips (wallet mode, slippage `Auto`): `primary` fill + `on-fill`; gold `accent`

@@ -13,7 +13,7 @@ Uncommitted working tree on `main` after `979dbbd`. `pnpm verify`: check ✓, 74
 
 Things the automated gate can't judge:
 
-- [ ] Looks right: light + dark, 375px / 768px / 1280px; screenshots attached to the PR
+- [ ] Looks right: 375px / 768px / 1280px; screenshots attached to the PR
 - [ ] Keyboard only: tab through header → card → picker → settings → review → confirm, visible focus everywhere
 - [ ] Screen reader smoke (VoiceOver): labels on every input, submit state announced, toast announced
 - [ ] `prefers-reduced-motion` and `prefers-contrast: more`
