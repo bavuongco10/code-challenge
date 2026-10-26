@@ -55,6 +55,12 @@
   --color-on-terminal-dim: var(--on-terminal-dim);
   --font-pixel: "Press Start 2P", ui-monospace, monospace;
   --font-mono: "VT323", ui-monospace, monospace;
+  --animate-blink: blink 1s steps(1) infinite;
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
 }
 
 @utility pixel-box {

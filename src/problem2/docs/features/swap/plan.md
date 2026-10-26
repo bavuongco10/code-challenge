@@ -138,6 +138,10 @@ breakdown: [`impl/README.md`](impl/README.md).
 - The header shows the short address `0x1234...5678` (first 6 and last 4 characters) as
   `#account-button`. It opens `#account-menu`, which has the full address, a disconnect button, and
   "Recent activity" (newest first, max 5): `Swapped` · `1 ETH → 2000 USDC` · relative time.
+- Under the swap card, a terminal "Trade log" (`#trade-log`, `.trade-log-item`) shows up to 5 latest
+  swaps as `HH:MM SWAPPED 0.25 ETH → 698.25 USDC` (24h, local time), newest first, one truncated line
+  each. Empty: "No swaps yet". It never makes the page scroll: it takes only the height left in the
+  viewport (lines that don't fit are dropped whole), and is hidden when the viewport is under 760px tall.
 - Each panel shows its balance at the bottom right (`#sell-balance`, `#buy-balance`), formatted
   like a computed amount followed by the symbol (`1.5 ETH`). The USD value stays at the bottom left.
 - The token picker shows a "Your tokens" section first: tokens with a balance above 0,
@@ -169,7 +173,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 
 ### Sepolia wallet (phase 2)
 
-Gets an ADR (wallet library, how quotes are made) before it is built.
+Decisions: [ADR 0002](../../adr/0002-sepolia-wallet-and-quotes.md). Build plan: [`impl/phase2-sepolia.md`](impl/phase2-sepolia.md).
 
 - The header shows a testnet badge, and the account menu says "You are in testnet mode".
 - If the wallet is on another network, it is asked to switch first. Refusing shows the toast

@@ -1,8 +1,8 @@
-import { SwapCard, WalletHeader } from "../features/swap/index.ts";
+import { SwapCard, TradeLog, WalletHeader } from "../features/swap/index.ts";
 
 export default function App() {
   return (
-    <>
+    <div className="flex h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b-4 border-ink bg-panel px-4 py-3">
         <div className="flex items-center gap-3">
           <span
@@ -15,9 +15,10 @@ export default function App() {
         </div>
         <WalletHeader />
       </header>
-      <main className="px-4 py-8">
+      <main className="flex min-h-0 flex-1 flex-col px-4 py-4">
         <SwapCard />
+        <TradeLog />
       </main>
-    </>
+    </div>
   );
 }
