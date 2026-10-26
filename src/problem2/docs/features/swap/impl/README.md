@@ -84,3 +84,7 @@ Copy into your task file's _Handoff notes_ when you finish:
 - e2e: <filter> → <n passed / n failed, and why>
 - Follow-ups: <none | what the next agent should know>
 ```
+
+## Phase 2
+
+Sepolia wallet plan and tasks S00–S09: [`phase2-sepolia.md`](phase2-sepolia.md).
