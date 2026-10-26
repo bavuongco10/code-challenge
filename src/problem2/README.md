@@ -13,12 +13,13 @@ Live demo: https://bavuongco10.github.io/code-challenge/
 - Wallet: connect, balances, 25/50/75/Max, insufficient-balance checks, review → confirm → toasts, trade log
 - Loading and error states for prices, with Retry
 - Demo wallet: a fake wallet stored in localStorage
+- Guided tour on first visit (replay with the header `?` button)
 
 Full rules and edge cases: [`docs/features/swap/plan.md`](docs/features/swap/plan.md).
 
 ## Stack
 
-React 19, TypeScript, Vite 8, Jotai + TanStack Query, Tailwind CSS 4, Headless UI,
+React 19, TypeScript, Vite 8, Jotai + TanStack Query, Tailwind CSS 4, Headless UI, react-joyride,
 Vitest, Playwright, oxlint, Prettier. Package manager is pnpm, Node version is in `.nvmrc`.
 
 ## Getting started

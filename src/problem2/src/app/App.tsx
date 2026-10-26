@@ -1,4 +1,9 @@
-import { SwapCard, TradeLog, WalletHeader } from "../features/swap/index.ts";
+import {
+  GuideTour,
+  SwapCard,
+  TradeLog,
+  WalletHeader,
+} from "../features/swap/index.ts";
 
 export default function App() {
   return (
@@ -12,6 +17,7 @@ export default function App() {
           <h1 className="font-pixel text-xs uppercase max-[479px]:sr-only">
             Pixel Swap
           </h1>
+          <GuideTour />
         </div>
         <WalletHeader />
       </header>

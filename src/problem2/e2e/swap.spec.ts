@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { $, mockPrices, pickToken, PRICES, setup } from "./helpers.ts";
 
 // Locators use ids, states are asserted with classes (see "UI contract" in
@@ -370,5 +370,49 @@ test.describe("price loading", () => {
     await $(page, "#prices-retry").click();
     await expect($(page, "#prices-error")).toHaveCount(0);
     await pickToken(page, "buy", "USDC");
+  });
+});
+
+test.describe("guided tour", () => {
+  test.use({ storageState: { cookies: [], origins: [] } }); // first visit
+  test.beforeEach(({ page }) =>
+    page.route("**/prices.json", (r) => r.fulfill({ json: PRICES })),
+  );
+  const tip = (page: Page) => $(page, "#tour-tooltip");
+
+  test("shows again on reload until the user interacts", async ({ page }) => {
+    await page.goto("/");
+    await expect(tip(page)).toContainText("Wallet mode");
+    await page.reload();
+    await expect(tip(page)).toContainText("Wallet mode");
+  });
+
+  test("overlay click and Escape don't dismiss it", async ({ page }) => {
+    await page.goto("/");
+    await expect(tip(page)).toContainText("Wallet mode");
+    await page.mouse.click(5, 400);
+    await page.keyboard.press("Escape");
+    await expect(tip(page)).toContainText("Wallet mode");
+    await page.reload();
+    await expect(tip(page)).toContainText("Wallet mode");
+  });
+
+  test("one Next click stops the auto-show", async ({ page }) => {
+    await page.goto("/");
+    await tip(page).getByRole("button", { name: "Next" }).click();
+    await expect(tip(page)).toContainText("Connect the demo wallet");
+    await page.reload();
+    await expect($(page, "#swap-submit")).toBeVisible();
+    await expect(tip(page)).toBeHidden();
+  });
+
+  test("Skip closes it for good; ? replays it", async ({ page }) => {
+    await page.goto("/");
+    await tip(page).getByRole("button", { name: "Skip" }).click();
+    await expect(tip(page)).toBeHidden();
+    await page.reload();
+    await expect(tip(page)).toBeHidden();
+    await $(page, "#tour-start").click();
+    await expect(tip(page)).toContainText("Wallet mode");
   });
 });

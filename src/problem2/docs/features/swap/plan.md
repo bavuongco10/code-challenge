@@ -43,6 +43,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 | 14  | 25% / 50% / 75% / Max buttons on the Sell panel                                   |
 | 15  | Insufficient-balance validation                                                   |
 | 16  | Review dialog, then confirm, then a pending toast, then a success toast           |
+| 17  | Guided tour (react-joyride) of the main controls; header `?` replays it           |
 
 ## Rules
 
@@ -185,6 +186,16 @@ Decisions: [ADR 0002](../../adr/0002-sepolia-wallet-and-quotes.md). Build plan: 
 - After signing the steps are the same as phase 1. Pending lasts until the transaction is
   mined, and balances come from the chain afterwards.
 
+### Guided tour
+
+- Shows automatically on every visit until the user clicks Next or Skip once. That saves `swap:tourDone = true` in localStorage and it stops auto-showing.
+- Overlay clicks and Escape don't dismiss it; Back doesn't count as seen.
+- Steps: wallet mode, connect/account, sell amount, sell token, buy token, settings, submit,
+  trade log. Missing targets (e.g. trade log on short screens) are skipped.
+- The header `#tour-start` (`?`) button replays it from step 1 at any time.
+- e2e: Playwright's `storageState` presets `swap:tourDone` so the overlay never blocks other
+  tests; the tour tests clear it.
+
 ### Number formatting (en-US)
 
 - Computed amount: at most 6 significant digits, no thousands separators, never exponent
@@ -230,6 +241,7 @@ them without updating the spec.
 | Review details          | `#review-details`, `#confirm-swap` (`.is-confirming`)                      |
 | Toast (`role="status"`) | `#swap-toast` (`.is-pending` / `.is-success` / `.is-error`)                |
 | Toast parts             | `.toast-title`, `.toast-body`, `#swap-toast-close`                         |
+| Guided tour             | `#tour-start` (replay), `#tour-tooltip`                                    |
 
 ## Gotchas
 

@@ -1,8 +1,14 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { atomWithQuery, queryClientAtom } from "jotai-tanstack-query";
 
 import { fetchPrices } from "./api/fetchPrices.ts";
-import { AUTO_SLIPPAGE, DEFAULT_DEADLINE, DEFAULT_SELL } from "./constants.ts";
+import {
+  AUTO_SLIPPAGE,
+  DEFAULT_DEADLINE,
+  DEFAULT_SELL,
+  TOUR_KEY,
+} from "./constants.ts";
 import { sanitizeAmount, toNumber } from "./lib/amount.ts";
 import { convert, minReceived } from "./lib/convert.ts";
 import { formatAmount, formatBalance } from "./lib/format.ts";
@@ -175,3 +181,10 @@ export const submitStateAtom = atom((get): SubmitState => {
 
 export const reviewOpenAtom = atom(false);
 export const toastAtom = atom<Toast>(null);
+
+// ---- Guided tour ----
+
+// Auto-runs on first visit; the header "?" button replays it.
+export const tourDoneAtom = atomWithStorage(TOUR_KEY, false, undefined, {
+  getOnInit: true,
+});

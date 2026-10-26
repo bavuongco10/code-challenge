@@ -19,3 +19,4 @@ export const SIGN_MS = 1000; // confirm → signed
 export const PENDING_MS = 2000; // pending → success
 export const TOAST_MS = 10_000; // success auto-dismiss
 export const MAX_ACTIVITY = 5; // shown in the menu
+export const TOUR_KEY = "swap:tourDone";
