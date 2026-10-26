@@ -22,7 +22,9 @@ import {
   formatRate,
   formatUsd,
 } from "../lib/format.ts";
+import { MIN_RECEIVED_HELP, SLIPPAGE_HELP } from "../constants.ts";
 import { confirmingAtom, confirmSwapAtom } from "../swapFlow.ts";
+import { InfoTip } from "./InfoTip.tsx";
 import { PixelIcon } from "./PixelIcon.tsx";
 import { Spinner } from "./Spinner.tsx";
 import { TokenIcon } from "./TokenIcon.tsx";
@@ -124,11 +126,17 @@ export function ReviewDialog() {
                     <dd className="text-success">Free</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted">Max slippage</dt>
+                    <dt className="text-muted">
+                      Max slippage
+                      <InfoTip label="max slippage" text={SLIPPAGE_HELP} />
+                    </dt>
                     <dd>{formatPercent(slippage)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted">Min received</dt>
+                    <dt className="text-muted">
+                      Min received
+                      <InfoTip label="min received" text={MIN_RECEIVED_HELP} />
+                    </dt>
                     <dd>
                       {formatAmount(min)} {quote.buy}
                     </dd>

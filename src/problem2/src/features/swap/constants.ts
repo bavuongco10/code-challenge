@@ -7,6 +7,12 @@ export const DEMO_ADDRESS = "0x1234567890abcdef1234567890abcdef12345678";
 export const DEMO_BALANCES = { ETH: "1.5", USDC: "1000", SWTH: "250000" };
 export const DEFAULT_SELL = "ETH";
 export const AUTO_SLIPPAGE = 0.5; // %
+export const SLIPPAGE_HELP =
+  "The most the price can move against you before the swap reverts. Auto uses 0.5%.";
+export const MIN_RECEIVED_HELP =
+  "The least you get after max slippage. Below this, the swap reverts.";
+export const DEADLINE_HELP =
+  "If the swap is still pending after this many minutes, it is cancelled.";
 export const DEFAULT_DEADLINE = 30; // minutes
 export const MAX_DEADLINE = 4320;
 export const SIGN_MS = 1000; // confirm → signed

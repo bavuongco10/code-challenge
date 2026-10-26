@@ -93,7 +93,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 ### Settings (gear popover)
 
 - Escape or a click outside closes it. Values last only until the page is reloaded.
-- **Max slippage** (%): Auto (0.5%) is the default. The input is empty and shows `0.5` as a
+- **Max slippage** (%): a `?` tooltip explains it (as for min received and swap deadline). Auto (0.5%) is the default. The input is empty and shows `0.5` as a
   placeholder.
   - Typing a value turns Auto off. Clicking `Auto`, or blurring with an empty field or `0`,
     switches back to Auto.

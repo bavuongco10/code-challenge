@@ -6,9 +6,14 @@ import {
   slippageInputAtom,
   slippageLevelAtom,
 } from "../atoms.ts";
-import { DEFAULT_DEADLINE } from "../constants.ts";
+import {
+  DEADLINE_HELP,
+  DEFAULT_DEADLINE,
+  SLIPPAGE_HELP,
+} from "../constants.ts";
 import { sanitizeDeadline, sanitizeSlippage, toNumber } from "../lib/amount.ts";
 import { formatPercent } from "../lib/format.ts";
+import { InfoTip } from "./InfoTip.tsx";
 import { PixelIcon } from "./PixelIcon.tsx";
 
 const LEVEL = {
@@ -42,9 +47,12 @@ export function SettingsPopover() {
         className="pixel-box absolute right-0 z-30 mt-3 w-72 space-y-4 bg-panel p-3 text-sm"
       >
         <div>
-          <label htmlFor="slippage-input" className="font-pixel">
-            Max slippage
-          </label>
+          <div className="flex items-center">
+            <label htmlFor="slippage-input" className="font-pixel">
+              Max slippage
+            </label>
+            <InfoTip label="max slippage" text={SLIPPAGE_HELP} />
+          </div>
           <div className="mt-1 flex items-center gap-2">
             <button
               id="slippage-auto"
@@ -80,9 +88,12 @@ export function SettingsPopover() {
           )}
         </div>
         <div>
-          <label htmlFor="deadline-input" className="font-pixel">
-            Swap deadline
-          </label>
+          <div className="flex items-center">
+            <label htmlFor="deadline-input" className="font-pixel">
+              Swap deadline
+            </label>
+            <InfoTip label="swap deadline" text={DEADLINE_HELP} />
+          </div>
           <div className="mt-1 flex items-center gap-2">
             <input
               id="deadline-input"

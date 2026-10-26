@@ -6,6 +6,7 @@ import {
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 
+import { InfoTip } from "./InfoTip.tsx";
 import { PixelIcon } from "./PixelIcon.tsx";
 
 import {
@@ -15,6 +16,7 @@ import {
   slippageAtom,
   slippageInputAtom,
 } from "../atoms.ts";
+import { MIN_RECEIVED_HELP, SLIPPAGE_HELP } from "../constants.ts";
 import { formatAmount, formatPercent, formatRate } from "../lib/format.ts";
 
 export function RateDetails() {
@@ -63,7 +65,10 @@ export function RateDetails() {
               </dd>
             </div>
             <div id="detail-slippage" className="flex justify-between">
-              <dt className="text-muted">Max slippage</dt>
+              <dt className="text-muted">
+                Max slippage
+                <InfoTip label="max slippage" text={SLIPPAGE_HELP} />
+              </dt>
               <dd>
                 {!custom && (
                   <span className="slippage-auto mr-1 bg-accent px-1 text-on-accent">
@@ -76,7 +81,10 @@ export function RateDetails() {
               </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted">Min received</dt>
+              <dt className="text-muted">
+                Min received
+                <InfoTip label="min received" text={MIN_RECEIVED_HELP} />
+              </dt>
               <dd id="detail-min-received">
                 {formatAmount(min)} {quote.buy}
               </dd>
