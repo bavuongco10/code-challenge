@@ -94,3 +94,208 @@ const WalletPage = ({ children, ...rest }: Props) => {
 
 export default WalletPage;
 ```
+
+## Side by side
+
+Each row pairs a piece of the original with its replacement. The numbers in the Fixes column point to the issues listed above.
+
+<table>
+<tr><th>Problem</th><th>Refactored</th><th>Fixes</th></tr>
+
+<tr><td>
+
+```tsx
+interface WalletBalance {
+  currency: string;
+  amount: number;
+}
+interface FormattedWalletBalance {
+  currency: string;
+  amount: number;
+  formatted: string;
+}
+interface Props extends BoxProps {}
+```
+
+</td><td>
+
+```tsx
+type Blockchain =
+  'Osmosis' | 'Ethereum' | 'Arbitrum' | 'Zilliqa' | 'Neo';
+
+interface WalletBalance {
+  currency: string;
+  amount: number;
+  blockchain: Blockchain;
+}
+interface FormattedWalletBalance extends WalletBalance {
+  formatted: string;
+}
+type Props = BoxProps;
+```
+
+</td><td>3, 16</td></tr>
+
+<tr><td>
+
+```tsx
+// inside the component
+const getPriority = (blockchain: any): number => {
+  switch (blockchain) {
+    case 'Osmosis':  return 100
+    case 'Ethereum': return 50
+    case 'Arbitrum': return 30
+    case 'Zilliqa':  return 20
+    case 'Neo':      return 20
+    default:         return -99
+  }
+}
+```
+
+</td><td>
+
+```tsx
+// module level
+const PRIORITY: Record<string, number> = {
+  Osmosis: 100,
+  Ethereum: 50,
+  Arbitrum: 30,
+  Zilliqa: 20,
+  Neo: 20,
+};
+const getPriority = (blockchain: string): number =>
+  PRIORITY[blockchain] ?? -99;
+```
+
+</td><td>3, 9</td></tr>
+
+<tr><td>
+
+```tsx
+const WalletPage: React.FC<Props> = (props: Props) => {
+  const { children, ...rest } = props;
+  const balances = useWalletBalances();
+  const prices = usePrices();
+```
+
+</td><td>
+
+```tsx
+const WalletPage = ({ children, ...rest }: Props) => {
+  const classes = useStyles();
+  const balances = useWalletBalances();
+  const prices = usePrices();
+```
+
+</td><td>6, 16</td></tr>
+
+<tr><td>
+
+```tsx
+const sortedBalances = useMemo(() => {
+  return balances.filter((balance: WalletBalance) => {
+    const balancePriority = getPriority(balance.blockchain);
+    if (lhsPriority > -99) {
+      if (balance.amount <= 0) {
+        return true;
+      }
+    }
+    return false
+  }).sort((lhs: WalletBalance, rhs: WalletBalance) => {
+    const leftPriority = getPriority(lhs.blockchain);
+    const rightPriority = getPriority(rhs.blockchain);
+    if (leftPriority > rightPriority) {
+      return -1;
+    } else if (rightPriority > leftPriority) {
+      return 1;
+    }
+  });
+}, [balances, prices]);
+
+const formattedBalances = sortedBalances.map((balance: WalletBalance) => {
+  return {
+    ...balance,
+    formatted: balance.amount.toFixed()
+  }
+})
+```
+
+</td><td>
+
+```tsx
+const formattedBalances = useMemo<FormattedWalletBalance[]>(
+  () =>
+    balances
+      .map((b) => ({ b, priority: getPriority(b.blockchain) }))
+      .filter(({ b, priority }) => priority > -99 && b.amount > 0)
+      .sort((l, r) => r.priority - l.priority)
+      .map(({ b }) => ({ ...b, formatted: b.amount.toFixed(2) })),
+  [balances],
+);
+```
+
+</td><td>1, 2, 4, 8, 10, 11, 13</td></tr>
+
+<tr><td>
+
+```tsx
+const rows = sortedBalances.map(
+  (balance: FormattedWalletBalance, index: number) => {
+    const usdValue = prices[balance.currency] * balance.amount;
+    return (
+      <WalletRow
+        className={classes.row}
+        key={index}
+        amount={balance.amount}
+        usdValue={usdValue}
+        formattedAmount={balance.formatted}
+      />
+    )
+  })
+```
+
+</td><td>
+
+```tsx
+const rows = useMemo(
+  () =>
+    formattedBalances.map((b) => (
+      <WalletRow
+        key={`${b.blockchain}-${b.currency}`}
+        className={classes.row}
+        amount={b.amount}
+        usdValue={(prices[b.currency] ?? 0) * b.amount}
+        formattedAmount={b.formatted}
+      />
+    )),
+  [formattedBalances, prices, classes.row],
+);
+```
+
+</td><td>5, 6, 7, 11, 12</td></tr>
+
+<tr><td>
+
+```tsx
+  return (
+    <div {...rest}>
+      {rows}
+    </div>
+  )
+}
+```
+
+</td><td>
+
+```tsx
+  return (
+    <Box {...rest}>
+      {rows}
+      {children}
+    </Box>
+  );
+};
+```
+
+</td><td>14, 15</td></tr>
+</table>
