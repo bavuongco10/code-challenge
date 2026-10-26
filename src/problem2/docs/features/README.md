@@ -1,7 +1,7 @@
 # Feature docs
 
 How each feature behaves **now**: business rules, edge cases, surprises. One file per
-feature with non-obvious rules (`<feature>.md`, kebab-case). Trivial features get none.
+feature with non-obvious rules (`<feature>/plan.md`, kebab-case folder). Trivial features get none.
 
 - Document rules, not code structure. Aim for ~20–40 lines.
 - Update the doc in the same change that alters a rule or edge case.

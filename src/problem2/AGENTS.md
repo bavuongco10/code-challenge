@@ -4,6 +4,7 @@
 
 - React 19 + TypeScript 6, built with Vite 8 (`@vitejs/plugin-react`).
 - State: Jotai 3 (`jotai`). Don't add Redux/Zustand/Context-based stores.
+- Server data: TanStack Query 5 (`@tanstack/react-query`) bridged into Jotai by `jotai-tanstack-query`.
 - Styling: Tailwind CSS 4 via `@tailwindcss/vite` (no `tailwind.config.js`; config lives in CSS).
 - UI primitives: Headless UI 2 (`@headlessui/react`). Don't add other component libraries (MUI, Radix, shadcn...).
 - Lint: oxlint (`.oxlintrc.json`). Format: Prettier (`.prettierrc`, defaults). No ESLint or Biome.
@@ -38,8 +39,6 @@ Rules:
 - Start code inside the feature. Move it to `shared/` only once a second feature needs it.
 - Create only the subfolders a feature actually uses. A feature with a single component doesn't need `components/`.
 
-TODO: `src/` still has the flat Vite starter (`App.tsx`, `App.css`, `index.css`). When building the form, move the shell into `app/`, delete `App.css`, and cut `index.css` down to the Tailwind import + `@theme`.
-
 ## Commands
 
 Run these from `src/problem2/`:
@@ -73,6 +72,8 @@ Before saying a task is done, run `pnpm check`. `pnpm check` is the single sourc
 - Import test APIs explicitly: `import { describe, expect, it } from 'vitest'`. Globals are off.
 - Test pure logic first (conversion math, amount parsing/validation, price-list cleanup).
 - Mock `fetch` with `vi.stubGlobal('fetch', ...)`. Tests never hit the real prices URL.
+- Query atoms share one default `QueryClient`; give each test store its own:
+  `store.set(queryClientAtom, new QueryClient())`, or cached data leaks between tests.
 - Test atoms without React: `const store = createStore(); store.set(amountAtom, '1'); expect(store.get(convertedAtom))...`
 - TODO: component tests need `jsdom` + `@testing-library/react`. Not installed; add them with the first component test.
 
@@ -81,8 +82,9 @@ Before saying a task is done, run `pnpm check`. `pnpm check` is the single sourc
 - Feature state lives in `features/<feature>/atoms.ts`, with names ending in `Atom` (`fromTokenAtom`, `amountAtom`).
 - Store minimal state in primitive atoms. Compute everything else in derived atoms
   (`atom((get) => ...)`), e.g. the converted amount or a validation error. Never copy derived values into state.
-- Async data such as prices goes in an async atom. Use Jotai 3 `unwrap` from `jotai/utils` for a non-suspending
-  value, or `<Suspense>` + an error boundary.
+- Server data such as prices goes through TanStack Query (`@tanstack/react-query`), exposed as atoms with
+  `atomWithQuery` from `jotai-tanstack-query`. Map the query result to a feature state in a derived atom. Refetch via
+  `get(queryClientAtom).refetchQueries(...)`; the query atom's own setter only re-reads the cache.
 - In components, use `useAtomValue` to read and `useSetAtom` to write. Use `useAtom` only when you need both.
 - Atoms are private to their feature. Expose them through `index.ts` only if another feature really needs them.
 - Plain `useState` is fine for UI-only local state (open/closed, hover).
@@ -110,7 +112,8 @@ Before saying a task is done, run `pnpm check`. `pnpm check` is the single sourc
 - Components are function components with hooks. Files that export components should export
   only components, because oxlint enforces `only-export-components`.
 - Env vars: only `VITE_`-prefixed vars reach the client, and they ship in the bundle. Never put secrets in them.
-- Data fetching: plain `fetch` in `features/<feature>/api/`, consumed by an async atom. No fetching library.
+- Data fetching: plain `fetch` in `features/<feature>/api/`, run as the `queryFn` of an `atomWithQuery`. Don't call
+  `useQuery` in components; read the atom. Don't add SWR or another fetching library.
 - Accessibility: every input has a label, errors are announced (`aria-live` / `aria-describedby`),
   and the form works with the keyboard alone.
 
@@ -128,7 +131,7 @@ Before saying a task is done, run `pnpm check`. `pnpm check` is the single sourc
 
 ## Feature docs
 
-- Feature behavior is documented in `docs/features/<feature>.md` (start: `docs/features/swap.md`).
+- Feature behavior is documented in `docs/features/<feature>/plan.md` (start: `docs/features/swap/plan.md`).
   Read the relevant one before changing a feature.
 - If your change alters a business rule, validation or edge case, update that doc in the same
   change. If unsure, say so in your summary.

@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 CLAUDE.local.md
+
+# Playwright
+test-results
+playwright-report
