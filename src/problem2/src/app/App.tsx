@@ -9,7 +9,9 @@ export default function App() {
             aria-hidden
             className="inline-block size-6 border-4 border-ink bg-accent"
           />
-          <h1 className="font-pixel text-xs uppercase">Pixel Swap</h1>
+          <h1 className="font-pixel text-xs uppercase max-[479px]:sr-only">
+            Pixel Swap
+          </h1>
         </div>
         <WalletHeader />
       </header>

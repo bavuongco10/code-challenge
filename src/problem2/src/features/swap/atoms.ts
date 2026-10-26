@@ -161,7 +161,9 @@ export const insufficientAtom = atom((get) => {
 
 // Rows from plan.md → Validation, first match wins.
 export const submitStateAtom = atom((get): SubmitState => {
-  if (!get(readyPricesAtom)) return "loading-prices";
+  const prices = get(pricesAtom).state;
+  if (prices === "error") return "prices-error";
+  if (prices === "loading") return "loading-prices";
   if (!get(sellTokenAtom) || !get(buyTokenAtom)) return "select-token";
   if (!get(quoteAtom)) return "enter-amount";
   if (!get(connectedAtom)) return "connect";

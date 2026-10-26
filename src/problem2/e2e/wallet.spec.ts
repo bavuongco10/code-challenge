@@ -57,7 +57,7 @@ test.describe("connect / disconnect", () => {
   test("submit says Connect wallet when the form is valid and no wallet", async ({
     page,
   }) => {
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
     await expect($(page, "#swap-submit")).toContainClass("is-connect");
     await $(page, "#swap-submit").click();
     await expect($(page, "#account-button")).toBeVisible();
@@ -121,10 +121,10 @@ test.describe("balances, presets, insufficient balance", () => {
     ["100", "1.5"], // Max: no gas reserve in the demo
   ] as const) {
     test(`preset ${percent}% fills ${expected}`, async ({ page }) => {
-      await $(page, "#sell-amount").hover();
+      await $(page, "#input-amount").hover();
       await $(page, `.amount-preset[data-percent="${percent}"]`).click();
-      await expect($(page, "#sell-amount")).toHaveValue(expected);
-      await expect($(page, "#buy-amount")).toHaveValue(
+      await expect($(page, "#input-amount")).toHaveValue(expected);
+      await expect($(page, "#output-amount")).toHaveValue(
         String(Number(expected) * 2000),
       );
     });
@@ -134,31 +134,31 @@ test.describe("balances, presets, insufficient balance", () => {
     await $(page, "#sell-token").click();
     await $(page, "#token-search").fill("WBTC");
     await $(page, "#token-option-WBTC").click();
-    await $(page, "#sell-amount").hover();
+    await $(page, "#input-amount").hover();
     await expect($(page, ".amount-preset")).toHaveCount(0);
   });
 
   test("amount above balance: red amount + balance, Not enough ETH", async ({
     page,
   }) => {
-    await $(page, "#sell-amount").fill("2");
+    await $(page, "#input-amount").fill("2");
     await expect($(page, "#swap-submit")).toContainClass("is-insufficient");
     await expect($(page, "#swap-submit")).toHaveText("Not enough ETH");
     await expect($(page, "#swap-submit")).toBeDisabled();
-    await expect($(page, "#sell-amount")).toContainClass("is-error");
+    await expect($(page, "#input-amount")).toContainClass("is-error");
     await expect($(page, "#sell-balance")).toContainClass("is-error");
   });
 
   test("amount equal to balance is allowed", async ({ page }) => {
-    await $(page, "#sell-amount").fill("1.5");
+    await $(page, "#input-amount").fill("1.5");
     await expect($(page, "#swap-submit")).toContainClass("is-ready");
-    await expect($(page, "#sell-amount")).not.toContainClass("is-error");
+    await expect($(page, "#input-amount")).not.toContainClass("is-error");
   });
 
   test("exact-out: a buy amount needing more than the balance is insufficient", async ({
     page,
   }) => {
-    await $(page, "#buy-amount").fill("4000"); // needs 2 ETH
+    await $(page, "#output-amount").fill("4000"); // needs 2 ETH
     await expect($(page, "#swap-submit")).toContainClass("is-insufficient");
   });
 
@@ -175,7 +175,7 @@ test.describe("swap flow", () => {
   test.beforeEach(async ({ page }) => {
     await setup(page);
     await connect(page);
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
     await $(page, "#swap-submit").click();
   });
 
@@ -190,7 +190,7 @@ test.describe("swap flow", () => {
     await expect($(page, "#review-details")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect($(page, "#review-dialog")).toBeHidden();
-    await expect($(page, "#sell-amount")).toHaveValue("1");
+    await expect($(page, "#input-amount")).toHaveValue("1");
   });
 
   test("confirm → pending toast → success toast, balances and activity update", async ({
@@ -201,7 +201,7 @@ test.describe("swap flow", () => {
     await expect($(page, "#confirm-swap")).toBeDisabled();
 
     await expect($(page, "#review-dialog")).toBeHidden();
-    await expect($(page, "#sell-amount")).toHaveValue("");
+    await expect($(page, "#input-amount")).toHaveValue("");
     await expect($(page, "#buy-token .token-symbol")).toHaveText("USDC"); // tokens kept
     await expect($(page, "#swap-toast")).toHaveAttribute("role", "status");
     await expect($(page, "#swap-toast")).toContainClass("is-pending");
@@ -251,7 +251,7 @@ test("balances persist across reloads after a swap", async ({ page }) => {
   });
   await setup(page);
   await expect($(page, "#sell-balance")).toHaveText("1 ETH");
-  await $(page, "#sell-amount").fill("0.25");
+  await $(page, "#input-amount").fill("0.25");
   await $(page, "#swap-submit").click();
   await $(page, "#confirm-swap").click();
   await expect($(page, "#swap-toast")).toContainClass("is-success");

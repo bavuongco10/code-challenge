@@ -82,6 +82,7 @@ describe("prices", () => {
     const s = freshStore();
     s.sub(pricesAtom, () => {});
     await waitFor(s, "error");
+    expect(s.get(submitStateAtom)).toBe("prices-error");
     // Hold the retry response so the loading state is observable (Query notifies async).
     let release = () => {};
     fetchMock.mockImplementationOnce(

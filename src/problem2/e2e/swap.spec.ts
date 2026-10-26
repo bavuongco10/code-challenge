@@ -19,7 +19,7 @@ test.describe("defaults and submit-button validation", () => {
   }) => {
     await expect($(page, "#sell-token .token-symbol")).toHaveText("ETH");
     await expect($(page, "#buy-token")).toContainClass("is-empty");
-    await expect($(page, "#sell-amount")).toHaveValue("");
+    await expect($(page, "#input-amount")).toHaveValue("");
     await expect($(page, "#sell-usd")).toHaveText("$0");
     await expect($(page, "#swap-submit")).toContainClass("is-select-token");
     await expect($(page, "#swap-submit")).toBeDisabled();
@@ -32,9 +32,9 @@ test.describe("defaults and submit-button validation", () => {
     await pickToken(page, "buy", "USDC");
     await expect($(page, "#swap-submit")).toContainClass("is-enter-amount");
     await expect($(page, "#swap-submit")).toBeDisabled();
-    await $(page, "#sell-amount").fill("0");
+    await $(page, "#input-amount").fill("0");
     await expect($(page, "#swap-submit")).toContainClass("is-enter-amount");
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
     // valid form, no wallet: the button connects (wallet states are in wallet.spec.ts)
     await expect($(page, "#swap-submit")).toContainClass("is-connect");
     await expect($(page, "#swap-submit")).toBeEnabled();
@@ -47,29 +47,29 @@ test.describe("conversion and number formatting", () => {
   test("sell side drives buy side, USD values and rate are shown", async ({
     page,
   }) => {
-    await $(page, "#sell-amount").fill("1");
-    await expect($(page, "#buy-amount")).toHaveValue("2000"); // latest USDC price (1) wins over older duplicate
+    await $(page, "#input-amount").fill("1");
+    await expect($(page, "#output-amount")).toHaveValue("2000"); // latest USDC price (1) wins over older duplicate
     await expect($(page, "#sell-usd")).toHaveText("$2,000.00");
     await expect($(page, "#buy-usd")).toHaveText("$2,000.00");
     await expect($(page, "#rate")).toHaveText("1 ETH = 2000 USDC ($2,000.00)");
   });
 
   test("clicking the rate inverts it", async ({ page }) => {
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
     await $(page, "#rate").click();
     await expect($(page, "#rate")).toContainClass("is-inverted");
     await expect($(page, "#rate")).toHaveText("1 USDC = 0.0005 ETH ($1.00)");
   });
 
   test("buy side drives sell side", async ({ page }) => {
-    await $(page, "#buy-amount").fill("1000");
-    await expect($(page, "#sell-amount")).toHaveValue("0.5");
+    await $(page, "#output-amount").fill("1000");
+    await expect($(page, "#input-amount")).toHaveValue("0.5");
   });
 
   test("clearing the amount clears the other side", async ({ page }) => {
-    await $(page, "#sell-amount").fill("1");
-    await $(page, "#sell-amount").fill("");
-    await expect($(page, "#buy-amount")).toHaveValue("");
+    await $(page, "#input-amount").fill("1");
+    await $(page, "#input-amount").fill("");
+    await expect($(page, "#output-amount")).toHaveValue("");
     await expect($(page, "#buy-usd")).toHaveText("$0");
   });
 
@@ -78,21 +78,21 @@ test.describe("conversion and number formatting", () => {
   }) => {
     await pickToken(page, "sell", "SWTH");
     await pickToken(page, "buy", "WBTC");
-    await $(page, "#sell-amount").fill("1");
-    await expect($(page, "#buy-amount")).toHaveValue("0.00000016");
+    await $(page, "#input-amount").fill("1");
+    await expect($(page, "#output-amount")).toHaveValue("0.00000016");
     await expect($(page, "#sell-usd")).toHaveText("<$0.01");
   });
 
   test("results are rounded to 6 significant digits", async ({ page }) => {
     await pickToken(page, "sell", "USDC");
     await pickToken(page, "buy", "ETH");
-    await $(page, "#sell-amount").fill("1234.5678");
-    await expect($(page, "#buy-amount")).toHaveValue("0.617284");
+    await $(page, "#input-amount").fill("1234.5678");
+    await expect($(page, "#output-amount")).toHaveValue("0.617284");
   });
 
   test("large USD values use compact notation", async ({ page }) => {
-    await $(page, "#sell-amount").fill("1000000");
-    await expect($(page, "#buy-amount")).toHaveValue("2000000000");
+    await $(page, "#input-amount").fill("1000000");
+    await expect($(page, "#output-amount")).toHaveValue("2000000000");
     await expect($(page, "#sell-usd")).toHaveText("$2.00B");
   });
 });
@@ -108,13 +108,13 @@ test.describe("amount input sanitising", () => {
     ["0.123456789", "0.12345678"], // max 8 decimals
   ] as const) {
     test(`typing "${typed}" gives "${expected}"`, async ({ page }) => {
-      await $(page, "#sell-amount").pressSequentially(typed);
-      await expect($(page, "#sell-amount")).toHaveValue(expected);
+      await $(page, "#input-amount").pressSequentially(typed);
+      await expect($(page, "#input-amount")).toHaveValue(expected);
     });
   }
 
   test("amount input uses the decimal keypad on mobile", async ({ page }) => {
-    await expect($(page, "#sell-amount")).toHaveAttribute(
+    await expect($(page, "#input-amount")).toHaveAttribute(
       "inputmode",
       "decimal",
     );
@@ -127,12 +127,12 @@ test.describe("token switching", () => {
   test("flip swaps tokens and keeps the typed amount with its token", async ({
     page,
   }) => {
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
     await $(page, "#switch-tokens").click();
     await expect($(page, "#sell-token .token-symbol")).toHaveText("USDC");
     await expect($(page, "#buy-token .token-symbol")).toHaveText("ETH");
-    await expect($(page, "#buy-amount")).toHaveValue("1");
-    await expect($(page, "#sell-amount")).toHaveValue("2000");
+    await expect($(page, "#output-amount")).toHaveValue("1");
+    await expect($(page, "#input-amount")).toHaveValue("2000");
   });
 
   test("picking the token already on the other side swaps the sides", async ({
@@ -175,7 +175,7 @@ test.describe("token picker", () => {
 test.describe("expandable details", () => {
   test.beforeEach(async ({ page }) => {
     await setup(page);
-    await $(page, "#sell-amount").fill("1");
+    await $(page, "#input-amount").fill("1");
   });
 
   test("collapsed by default, toggles open and closed", async ({ page }) => {
@@ -215,7 +215,7 @@ test.describe("expandable details", () => {
   });
 
   test("disappears when there is no quote", async ({ page }) => {
-    await $(page, "#sell-amount").fill("");
+    await $(page, "#input-amount").fill("");
     await expect($(page, "#rate")).toHaveCount(0);
     await expect($(page, "#details-toggle")).toHaveCount(0);
   });
@@ -358,14 +358,15 @@ test.describe("price loading", () => {
   });
 
   test("failed load shows an error with a working retry", async ({ page }) => {
-    let calls = 0;
+    // Fail until Retry: StrictMode's dev double-fetch aborts the first request.
+    let fail = true;
     await page.route("**/prices.json", (route) =>
-      ++calls === 1
-        ? route.fulfill({ status: 500 })
-        : route.fulfill({ json: PRICES }),
+      fail ? route.fulfill({ status: 500 }) : route.fulfill({ json: PRICES }),
     );
     await page.goto("/");
     await expect($(page, "#prices-error")).toHaveAttribute("role", "alert");
+    await expect($(page, "#swap-submit")).toContainClass("is-prices-error");
+    fail = false;
     await $(page, "#prices-retry").click();
     await expect($(page, "#prices-error")).toHaveCount(0);
     await pickToken(page, "buy", "USDC");

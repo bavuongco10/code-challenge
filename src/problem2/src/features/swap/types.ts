@@ -23,6 +23,7 @@ export type Quote = {
 };
 export type SubmitState =
   | "loading-prices"
+  | "prices-error"
   | "select-token"
   | "enter-amount"
   | "connect"

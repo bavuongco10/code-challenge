@@ -10,6 +10,7 @@ Read: `../plan.md` (Validation, Features 8–9), `design.md` (Submit colours)
 - [x] `#swap-submit` class `is-${submitStateAtom}`; label per Validation table (`Not enough <SYMBOL>`); text node is the label only (Spinner/icons are `aria-hidden` SVG)
 - [x] Enabled only for `is-ready` (→ `reviewOpenAtom = true`) and `is-connect` (→ `connectAtom`)
 - [x] `is-loading-prices` shows the spinner beside the label
+- [x] `is-prices-error` ("Prices unavailable", no spinner) while `#prices-error` is shown
 - [x] `aria-live="polite"` region announcing the label change (visually hidden sibling, not the button itself)
 - [x] `#prices-error` `role="alert"`: "Couldn't load prices" + `#prices-retry` → `retryPricesAtom`; gone once ready
 

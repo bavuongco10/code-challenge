@@ -31,7 +31,9 @@ export function AmountPanel({ side }: { side: Side }) {
   const amount = quote ? quote[`${side}Amount`] : 0;
   const price = token && prices.state === "ready" ? prices.prices[token] : 0;
   const balance = token ? (balances?.[token] ?? 0) : 0;
-  const label = side === "sell" ? "Sell" : "Buy";
+  const label = side === "sell" ? "Amount to send" : "Amount to receive";
+  // ids/labels from the original brief (.problem/index.html)
+  const id = side === "sell" ? "input-amount" : "output-amount";
 
   return (
     <Field
@@ -43,15 +45,20 @@ export function AmountPanel({ side }: { side: Side }) {
         if (!e.currentTarget.contains(e.relatedTarget)) setActive(false);
       }}
     >
-      <div className="flex items-center justify-between">
-        <Label className="font-pixel text-xs text-muted">{label}</Label>
+      <div className="flex flex-wrap items-center justify-between gap-1">
+        <Label
+          htmlFor={id}
+          className="font-pixel text-[12px] whitespace-nowrap text-muted py-2"
+        >
+          {label}
+        </Label>
         {side === "sell" && active && connected && balance > 0 && (
           <AmountPresets />
         )}
       </div>
       <div className="flex items-center gap-2">
         <Input
-          id={`${side}-amount`}
+          id={id}
           inputMode="decimal"
           autoComplete="off"
           placeholder="0"

@@ -47,6 +47,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 ## Rules
 
 - Defaults: sell ETH, buy not selected, both amounts empty.
+- Panel labels: Sell is "Amount to send", Buy is "Amount to receive" (wording from `.problem/index.html`).
 - Picking the token that is already on the other side swaps the two sides.
 - Flip swaps the tokens. The typed amount stays with its token and moves to the other
   side, and the other side is recomputed.
@@ -54,14 +55,15 @@ breakdown: [`impl/README.md`](impl/README.md).
 
 ### Validation (submit button state; disabled unless `is-ready` or `is-connect`)
 
-| Condition                      | Class               | Label             |
-| ------------------------------ | ------------------- | ----------------- |
-| Prices still loading           | `is-loading-prices` | `Loading prices…` |
-| Either token not selected      | `is-select-token`   | `Select a token`  |
-| Amount empty, `0`, or only `.` | `is-enter-amount`   | `Enter an amount` |
-| No wallet connected            | `is-connect`        | `Connect wallet`  |
-| Sell amount > sell balance     | `is-insufficient`   | `Not enough ETH`  |
-| Everything valid               | `is-ready`          | `Review`          |
+| Condition                      | Class               | Label                |
+| ------------------------------ | ------------------- | -------------------- |
+| Prices still loading           | `is-loading-prices` | `Loading prices…`    |
+| Prices failed to load          | `is-prices-error`   | `Prices unavailable` |
+| Either token not selected      | `is-select-token`   | `Select a token`     |
+| Amount empty, `0`, or only `.` | `is-enter-amount`   | `Enter an amount`    |
+| No wallet connected            | `is-connect`        | `Connect wallet`     |
+| Sell amount > sell balance     | `is-insufficient`   | `Not enough ETH`     |
+| Everything valid               | `is-ready`          | `Review`             |
 
 - The rows are checked top to bottom and the first match wins. `is-connect` connects the wallet.
 - Insufficient balance: the sell amount and the sell balance both turn red (`.is-error`).
@@ -197,7 +199,7 @@ them without updating the spec.
 
 | Element                 | id / class                                                                 |
 | ----------------------- | -------------------------------------------------------------------------- |
-| Amount inputs           | `#sell-amount`, `#buy-amount`                                              |
+| Amount inputs           | `#input-amount`, `#output-amount`                                          |
 | USD values              | `#sell-usd`, `#buy-usd`                                                    |
 | Token buttons           | `#sell-token`, `#buy-token`; `.token-symbol` inside; `.is-empty` when none |
 | Flip                    | `#switch-tokens`                                                           |
@@ -217,7 +219,7 @@ them without updating the spec.
 | Connect / account       | `#connect-wallet`, `#account-button`, `#account-menu`, `#disconnect`       |
 | Activity                | `#activity .activity-item`                                                 |
 | Balances                | `#sell-balance`, `#buy-balance` (`.is-error` when too low)                 |
-| Sell amount error       | `#sell-amount.is-error`                                                    |
+| Sell amount error       | `#input-amount.is-error`                                                   |
 | Picker balances         | `.token-balance` inside `.token-option`                                    |
 | Presets                 | `.amount-preset[data-percent="25"\|"50"\|"75"\|"100"]`                     |
 | Review                  | `#review-dialog`, `#review-sell`, `#review-buy`, `#review-more`            |

@@ -39,7 +39,7 @@ export function SettingsPopover() {
       </PopoverButton>
       <PopoverPanel
         id="settings-panel"
-        className="pixel-box absolute right-0 z-30 mt-2 w-72 space-y-4 bg-panel p-3 text-sm"
+        className="pixel-box absolute right-0 z-30 mt-3 w-72 space-y-4 bg-panel p-3 text-sm"
       >
         <div>
           <label htmlFor="slippage-input" className="font-pixel">

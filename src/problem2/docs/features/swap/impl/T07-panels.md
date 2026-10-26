@@ -7,10 +7,10 @@ Read: `../plan.md` (Amount input, Connected UI → balances/presets), `design.md
 
 ## Checklist
 
-- [x] `AmountPanel({ side })`: Headless UI `Field` + `Label` ("Sell"/"Buy") + `Input` `#sell-amount`/`#buy-amount`, `inputmode="decimal"`, `autoComplete="off"`, value from `amountsAtom`, `onChange` → `setAmountAtom`
+- [x] `AmountPanel({ side })`: Headless UI `Field` + `Label` ("Amount to send"/"Amount to receive") + `Input` `#input-amount`/`#output-amount`, `inputmode="decimal"`, `autoComplete="off"`, value from `amountsAtom`, `onChange` → `setAmountAtom`
 - [x] `#sell-usd`/`#buy-usd` bottom-left: `formatUsd`
 - [x] `#sell-balance`/`#buy-balance` bottom-right when connected: `formatAmount(balance) + " " + symbol`
-- [x] `insufficientAtom` → `.is-error` on `#sell-amount` and `#sell-balance` (danger colour), `aria-invalid` + `aria-describedby` to the balance
+- [x] `insufficientAtom` → `.is-error` on `#input-amount` and `#sell-balance` (danger colour), `aria-invalid` + `aria-describedby` to the balance
 - [x] `TokenButton`: `#sell-token`/`#buy-token`, `TokenIcon` + `.token-symbol`; `.is-empty` "Select token" when null; opens picker (`pickerSideAtom`)
 - [x] `AmountPresets`: `.amount-preset[data-percent]` 25/50/75/100 (label `Max` for 100); rendered only when connected, sell balance > 0, and the panel is hovered or focus-within (CSS can't remove from DOM; use `useState` for hover/focus so e2e `toHaveCount(0)` holds when hidden for zero balance)
 - [x] `FlipButton`: `#switch-tokens`, `aria-label="Switch tokens"`, overlaps the panels, icon rotates in 4 steps

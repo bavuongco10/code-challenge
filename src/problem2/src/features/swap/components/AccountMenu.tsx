@@ -40,7 +40,7 @@ export function AccountMenu() {
       >
         {({ close }) => (
           <>
-            <p className="font-mono text-lg break-all">{wallet.address}</p>
+            <p className="font-mono text-sm break-all">{wallet.address}</p>
             <button
               id="disconnect"
               type="button"

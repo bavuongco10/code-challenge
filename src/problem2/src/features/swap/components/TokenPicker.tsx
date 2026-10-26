@@ -43,7 +43,12 @@ export function TokenPicker() {
   };
 
   return (
-    <Dialog open={side !== null} onClose={close} id="token-picker">
+    <Dialog
+      open={side !== null}
+      onClose={close}
+      id="token-picker"
+      className="relative z-50"
+    >
       <DialogBackdrop className="fixed inset-0 bg-shadow/70" />
       <div className="fixed inset-0 flex items-end justify-center min-[480px]:items-center min-[480px]:p-4">
         <DialogPanel className="pixel-box flex max-h-[80dvh] w-full flex-col bg-panel text-ink min-[480px]:max-w-[420px]">

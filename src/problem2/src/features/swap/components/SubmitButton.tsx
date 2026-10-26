@@ -6,6 +6,7 @@ import { Spinner } from "./Spinner.tsx";
 
 const STYLE = {
   "loading-prices": "bg-raised text-muted cursor-not-allowed",
+  "prices-error": "bg-raised text-muted cursor-not-allowed",
   "select-token": "bg-raised text-muted cursor-not-allowed",
   "enter-amount": "bg-raised text-muted cursor-not-allowed",
   connect: "bg-primary text-on-fill cursor-pointer",
@@ -21,6 +22,7 @@ export function SubmitButton() {
 
   const label = {
     "loading-prices": "Loading prices…",
+    "prices-error": "Prices unavailable",
     "select-token": "Select a token",
     "enter-amount": "Enter an amount",
     connect: "Connect wallet",

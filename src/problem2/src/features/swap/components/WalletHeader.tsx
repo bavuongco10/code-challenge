@@ -9,9 +9,9 @@ export function WalletHeader() {
   const connected = useAtomValue(connectedAtom);
   const connect = useSetAtom(connectAtom);
   return (
-    // wraps below 480px: parent's logo + account on row 1, mode switch on row 2
+    // below 480px the mode switch wraps to its own row, sized to its content
     <div className="contents">
-      <div className="order-3 w-full min-[480px]:order-none min-[480px]:w-auto">
+      <div className="order-3 min-[480px]:order-none">
         <WalletModeSwitch />
       </div>
       {connected ? (
