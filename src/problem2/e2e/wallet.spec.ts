@@ -84,6 +84,11 @@ test.describe("connect / disconnect", () => {
     await connect(page);
     await $(page, "#account-button").click();
     await expect($(page, "#account-menu")).toContainText(ADDRESS);
+    await expect($(page, "#wallet-balances .wallet-balance")).toHaveText([
+      "ETH1.5",
+      "USDC1000",
+      "SWTH250000",
+    ]);
     await $(page, "#disconnect").click();
     await expect($(page, "#connect-wallet")).toBeVisible();
     await expect($(page, "#sell-balance")).toHaveCount(0);

@@ -11,6 +11,7 @@ import {
 import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 import { pickerSideAtom, pickTokenAtom, tokensAtom } from "../atoms.ts";
+import type { Side } from "../types.ts";
 import { balancesAtom, connectedAtom } from "../walletAtoms.ts";
 import { PixelIcon } from "./PixelIcon.tsx";
 import { TokenOption } from "./TokenOption.tsx";
@@ -23,9 +24,13 @@ function Heading({ children }: { children: string }) {
   );
 }
 
-export function TokenPicker() {
-  const side = useAtomValue(pickerSideAtom);
-  const setSide = useSetAtom(pickerSideAtom);
+function TokenPickerContent({
+  side,
+  onClose,
+}: {
+  side: Side;
+  onClose: () => void;
+}) {
   const pick = useSetAtom(pickTokenAtom);
   const tokens = useAtomValue(tokensAtom);
   const balances = useAtomValue(balancesAtom);
@@ -37,18 +42,9 @@ export function TokenPicker() {
   const bal = (t: string) => balances?.[t] ?? 0;
   const mine = connected ? shown.filter((t) => bal(t) > 0) : [];
   const rest = connected ? shown.filter((t) => bal(t) <= 0) : shown;
-  const close = () => {
-    setSide(null);
-    setQuery("");
-  };
 
   return (
-    <Dialog
-      open={side !== null}
-      onClose={close}
-      id="token-picker"
-      className="relative z-50"
-    >
+    <>
       <DialogBackdrop className="fixed inset-0 bg-shadow/70" />
       <div className="fixed inset-0 flex items-end justify-center min-[480px]:items-center min-[480px]:p-4">
         <DialogPanel className="pixel-box flex max-h-[80dvh] w-full flex-col bg-panel text-ink min-[480px]:max-w-[420px]">
@@ -59,7 +55,7 @@ export function TokenPicker() {
             <button
               type="button"
               aria-label="Close"
-              onClick={close}
+              onClick={onClose}
               className="pixel-focus p-1"
             >
               <PixelIcon name="close" />
@@ -68,7 +64,7 @@ export function TokenPicker() {
           <Combobox
             value={null}
             onChange={(s: string | null) => {
-              if (s && side) {
+              if (s) {
                 pick(side, s);
                 setQuery("");
               }
@@ -112,6 +108,24 @@ export function TokenPicker() {
           )}
         </DialogPanel>
       </div>
+    </>
+  );
+}
+
+export function TokenPicker() {
+  const side = useAtomValue(pickerSideAtom);
+  const setSide = useSetAtom(pickerSideAtom);
+
+  return (
+    <Dialog
+      open={side !== null}
+      onClose={() => setSide(null)}
+      id="token-picker"
+      className="relative z-50"
+    >
+      {side !== null && (
+        <TokenPickerContent side={side} onClose={() => setSide(null)} />
+      )}
     </Dialog>
   );
 }

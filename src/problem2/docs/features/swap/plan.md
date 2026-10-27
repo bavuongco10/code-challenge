@@ -137,7 +137,8 @@ breakdown: [`impl/README.md`](impl/README.md).
 ### Connected UI
 
 - The header shows the short address `0x1234...5678` (first 6 and last 4 characters) as
-  `#account-button`. It opens `#account-menu`, which has the full address, a disconnect button, and
+  `#account-button`. It opens `#account-menu`, which has the full address, a disconnect button,
+  "Balances" (`#wallet-balances .wallet-balance`: every token above 0 as `ETH 1.5`, else "No tokens"), and
   "Recent activity" (newest first, max 5): `Swapped` · `1 ETH → 2000 USDC` · relative time.
 - Under the swap card, a terminal "Trade log" (`#trade-log`, `.trade-log-item`) shows up to 5 latest
   swaps as `HH:MM SWAPPED 0.25 ETH → 698.25 USDC` (24h, local time), newest first, one truncated line
@@ -233,6 +234,7 @@ them without updating the spec.
 | Wallet mode             | `#wallet-mode` with `[data-mode=demo]`, `[data-mode=sepolia]` options      |
 | Connect / account       | `#connect-wallet`, `#account-button`, `#account-menu`, `#disconnect`       |
 | Activity                | `#activity .activity-item`                                                 |
+| Menu balances           | `#wallet-balances .wallet-balance`                                         |
 | Balances                | `#sell-balance`, `#buy-balance` (`.is-error` when too low)                 |
 | Sell amount error       | `#input-amount.is-error`                                                   |
 | Picker balances         | `.token-balance` inside `.token-option`                                    |

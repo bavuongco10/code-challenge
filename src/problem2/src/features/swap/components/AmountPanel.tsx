@@ -1,6 +1,5 @@
 import { Field, Input, Label } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useState } from "react";
 
 import {
   amountsAtom,
@@ -26,7 +25,6 @@ export function AmountPanel({ side }: { side: Side }) {
   const connected = useAtomValue(connectedAtom);
   const balances = useAtomValue(balancesAtom);
   const insufficient = useAtomValue(insufficientAtom) && side === "sell";
-  const [active, setActive] = useState(false);
 
   const amount = quote ? quote[`${side}Amount`] : 0;
   const price = token && prices.state === "ready" ? prices.prices[token] : 0;
@@ -36,15 +34,7 @@ export function AmountPanel({ side }: { side: Side }) {
   const id = side === "sell" ? "input-amount" : "output-amount";
 
   return (
-    <Field
-      className="pixel-inset flex flex-col gap-1 bg-well p-3 focus-within:[--frame:var(--frame-primary)]"
-      onMouseEnter={() => setActive(true)}
-      onMouseLeave={() => setActive(false)}
-      onFocus={() => setActive(true)}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setActive(false);
-      }}
-    >
+    <Field className="group pixel-inset flex flex-col gap-1 bg-well p-3 focus-within:[--frame:var(--frame-primary)]">
       <div className="flex flex-wrap items-center justify-between gap-1">
         <Label
           htmlFor={id}
@@ -52,8 +42,10 @@ export function AmountPanel({ side }: { side: Side }) {
         >
           {label}
         </Label>
-        {side === "sell" && active && connected && balance > 0 && (
-          <AmountPresets />
+        {side === "sell" && connected && balance > 0 && (
+          <div className="hidden group-hover:flex group-focus-within:flex">
+            <AmountPresets />
+          </div>
         )}
       </div>
       <div className="flex items-center gap-2">

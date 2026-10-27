@@ -1,8 +1,9 @@
 import { ComboboxOption } from "@headlessui/react";
+import { memo } from "react";
 import { formatAmount } from "../lib/format.ts";
 import { TokenIcon } from "./TokenIcon.tsx";
 
-export function TokenOption({
+export const TokenOption = memo(function TokenOption({
   symbol,
   balance,
 }: {
@@ -24,4 +25,4 @@ export function TokenOption({
       )}
     </ComboboxOption>
   );
-}
+});

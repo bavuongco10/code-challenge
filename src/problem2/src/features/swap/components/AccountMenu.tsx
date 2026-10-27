@@ -2,7 +2,7 @@ import { MAX_ACTIVITY } from "../constants.ts";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
 
-import { shortAddress } from "../lib/format.ts";
+import { formatAmount, shortAddress } from "../lib/format.ts";
 import { disconnectAtom, walletAtom } from "../walletAtoms.ts";
 import { PixelIcon } from "./PixelIcon.tsx";
 
@@ -25,6 +25,7 @@ export function AccountMenu() {
   const disconnect = useSetAtom(disconnectAtom);
   if (!wallet?.connected) return null;
   const items = wallet.activity.slice(0, MAX_ACTIVITY);
+  const held = Object.entries(wallet.balances).filter(([, b]) => Number(b) > 0);
   return (
     <Popover className="relative">
       <PopoverButton
@@ -52,6 +53,24 @@ export function AccountMenu() {
             >
               Disconnect
             </button>
+            <h3 className="mt-3 font-pixel text-[10px] uppercase">Balances</h3>
+            <ul id="wallet-balances" className="mt-2 space-y-1 bg-terminal p-2">
+              {held.length === 0 ? (
+                <li className="font-mono text-lg text-on-terminal">
+                  &gt; No tokens
+                </li>
+              ) : (
+                held.map(([sym, b]) => (
+                  <li
+                    key={sym}
+                    className="wallet-balance flex justify-between font-mono text-lg text-on-terminal"
+                  >
+                    <span>{sym}</span>
+                    <span>{formatAmount(Number(b))}</span>
+                  </li>
+                ))
+              )}
+            </ul>
             <h3 className="mt-3 font-pixel text-[10px] uppercase">
               Recent activity
             </h3>
