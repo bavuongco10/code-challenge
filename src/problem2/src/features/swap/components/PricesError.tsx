@@ -1,8 +1,9 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { memo } from "react";
 
 import { isPricesErrorAtom, retryPricesAtom } from "../atoms.ts";
 
-export function PricesError() {
+export const PricesError = memo(function PricesError() {
   const isError = useAtomValue(isPricesErrorAtom);
   const retry = useSetAtom(retryPricesAtom);
   if (!isError) return null;
@@ -23,4 +24,4 @@ export function PricesError() {
       </button>
     </div>
   );
-}
+});

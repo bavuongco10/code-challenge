@@ -1,4 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { memo } from "react";
 
 import {
   gasShortAtom,
@@ -47,7 +48,7 @@ function getSubmitLabel(
   return STATIC_LABELS[state];
 }
 
-export function SubmitButton() {
+export const SubmitButton = memo(function SubmitButton() {
   const state = useAtomValue(submitStateAtom);
   const sell = useAtomValue(sellTokenAtom);
   const isGasShort = useAtomValue(gasShortAtom);
@@ -98,4 +99,4 @@ export function SubmitButton() {
       </span>
     </>
   );
-}
+});

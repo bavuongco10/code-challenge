@@ -9,7 +9,7 @@ import {
   Label,
 } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { pickerSideAtom, pickTokenAtom, tokensAtom } from "../atoms.ts";
 import type { Side } from "../types.ts";
 import { balancesAtom, connectedAtom } from "../walletAtoms.ts";
@@ -127,7 +127,7 @@ function TokenPickerContent({
   );
 }
 
-export function TokenPicker() {
+export const TokenPicker = memo(function TokenPicker() {
   const side = useAtomValue(pickerSideAtom);
   const setSide = useSetAtom(pickerSideAtom);
 
@@ -143,4 +143,4 @@ export function TokenPicker() {
       )}
     </Dialog>
   );
-}
+});

@@ -1,31 +1,54 @@
-import { useAtom } from "jotai";
-import { memo, useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { memo, useMemo, useState } from "react";
 import { ACTIONS, EVENTS, Joyride, type Step } from "react-joyride";
 
 import { tourDoneAtom } from "../atoms.ts";
+import type { WalletMode } from "../types.ts";
+import { walletModeAtom } from "../walletAtoms.ts";
 import { TourTooltip } from "./TourTooltip.tsx";
 
-const STEPS: Step[] = [
+const getSteps = (mode: WalletMode): Step[] => [
   {
     target: "#wallet-mode",
     title: "Wallet mode",
     content:
-      "Demo uses a fake wallet with play money. Sepolia testnet is coming soon.",
+      mode === "sepolia"
+        ? "You are on Sepolia testnet. Toggle between live testnet swaps and simulated Demo mode."
+        : "Switch between Demo (simulated play money) and live Sepolia testnet.",
   },
+  ...(mode === "sepolia"
+    ? [
+        {
+          target: "#testnet-badge",
+          title: "Testnet badge",
+          content:
+            "Indicates you are trading on Ethereum Sepolia testnet using real Uniswap V3 pools.",
+        },
+      ]
+    : []),
   {
     target: "#connect-wallet, #account-button",
     title: "Wallet",
-    content: "Connect the demo wallet to see balances and swap.",
+    content:
+      mode === "sepolia"
+        ? "Connect your Web3 wallet (MetaMask, Coinbase, etc.) to view balances and sign swaps."
+        : "Connect the demo wallet to see balances and swap.",
   },
   {
     target: "#input-amount",
     title: "You send",
-    content: "Type how much to sell. The buy side updates live.",
+    content:
+      mode === "sepolia"
+        ? "Type how much to sell. Quotes and gas estimates fetch live from Sepolia."
+        : "Type how much to sell. The buy side updates live.",
   },
   {
     target: "#sell-token",
     title: "Pick tokens",
-    content: "Choose the token to sell here, and the one to buy below.",
+    content:
+      mode === "sepolia"
+        ? "Choose between ETH, WETH, USDC, and UNI on Sepolia."
+        : "Choose the token to sell here, and the one to buy below.",
   },
   {
     target: "#buy-token",
@@ -42,19 +65,27 @@ const STEPS: Step[] = [
     target: "#swap-submit",
     title: "Swap",
     content:
-      "Review the quote, then confirm. It tells you what's missing first.",
+      mode === "sepolia"
+        ? "Review the on-chain quote, network fee, and token approvals, then confirm."
+        : "Review the quote, then confirm. It tells you what's missing first.",
   },
   {
     target: "#trade-log",
     title: "Trade log",
-    content: "Your recent swaps show up here.",
+    content:
+      mode === "sepolia"
+        ? "Your on-chain transactions appear here with direct links to Sepolia Etherscan."
+        : "Your recent swaps show up here.",
   },
 ];
 
 export const GuideTour = memo(function GuideTour() {
   const [done, setDone] = useAtom(tourDoneAtom);
+  const mode = useAtomValue(walletModeAtom);
   // `done` persists only after Next or Skip; `run` is this visit only
   const [run, setRun] = useState(!done);
+  const steps = useMemo(() => getSteps(mode), [mode]);
+
   return (
     <>
       <button
@@ -70,9 +101,10 @@ export const GuideTour = memo(function GuideTour() {
       {/* mount = fresh tour from step 1; unmount on end */}
       {run && (
         <Joyride
+          key={mode}
           run
           continuous
-          steps={STEPS}
+          steps={steps}
           tooltipComponent={TourTooltip}
           options={{
             skipBeacon: true,

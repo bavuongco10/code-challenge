@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+import { memo } from "react";
 
 import { recentActivityAtom } from "../walletAtoms.ts";
 
@@ -8,7 +9,7 @@ const time = (at: number) =>
     minute: "2-digit",
   });
 
-export function TradeLog() {
+export const TradeLog = memo(function TradeLog() {
   const items = useAtomValue(recentActivityAtom);
   return (
     <section
@@ -43,4 +44,4 @@ export function TradeLog() {
       </p>
     </section>
   );
-}
+});

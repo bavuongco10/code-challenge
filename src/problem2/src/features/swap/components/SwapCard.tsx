@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+import { memo } from "react";
 
 import { gasShortAtom } from "../atoms.ts";
 import { AmountPanel } from "./AmountPanel.tsx";
@@ -25,7 +26,7 @@ function GasBanner() {
   );
 }
 
-export function SwapCard() {
+export const SwapCard = memo(function SwapCard() {
   return (
     <section className="pixel-box mx-auto w-full max-w-[480px] bg-panel p-4">
       <div className="flex items-center justify-between">
@@ -44,4 +45,4 @@ export function SwapCard() {
       <SwapToast />
     </section>
   );
-}
+});

@@ -1,5 +1,6 @@
 import { Field, Input, Label } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { memo } from "react";
 
 import {
   buyAmountAtom,
@@ -17,7 +18,7 @@ import { balancesAtom, connectedAtom } from "../walletAtoms.ts";
 import { AmountPresets } from "./AmountPresets.tsx";
 import { TokenButton } from "./TokenButton.tsx";
 
-export function AmountPanel({ side }: { side: Side }) {
+export const AmountPanel = memo(function AmountPanel({ side }: { side: Side }) {
   const value = useAtomValue(side === "sell" ? sellAmountAtom : buyAmountAtom);
   const setAmount = useSetAtom(setAmountAtom);
   const token = useAtomValue(side === "sell" ? sellTokenAtom : buyTokenAtom);
@@ -78,4 +79,4 @@ export function AmountPanel({ side }: { side: Side }) {
       </div>
     </Field>
   );
-}
+});

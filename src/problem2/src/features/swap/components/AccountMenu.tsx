@@ -1,6 +1,6 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 import {
   ETHERSCAN_TX_URL,
@@ -139,7 +139,7 @@ function AccountMenuContent({
   );
 }
 
-export function AccountMenu() {
+export const AccountMenu = memo(function AccountMenu() {
   const wallet = useAtomValue(walletAtom);
   const mode = useAtomValue(walletModeAtom);
 
@@ -164,4 +164,4 @@ export function AccountMenu() {
       </PopoverPanel>
     </Popover>
   );
-}
+});

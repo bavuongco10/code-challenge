@@ -8,7 +8,7 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 import {
   minReceivedAtom,
@@ -184,7 +184,7 @@ function ReviewDialogContent({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function ReviewDialog() {
+export const ReviewDialog = memo(function ReviewDialog() {
   const open = useAtomValue(reviewOpenAtom);
   const setOpen = useSetAtom(reviewOpenAtom);
   const confirming = useAtomValue(confirmingAtom);
@@ -198,4 +198,4 @@ export function ReviewDialog() {
       {open && <ReviewDialogContent onClose={() => setOpen(false)} />}
     </Dialog>
   );
-}
+});

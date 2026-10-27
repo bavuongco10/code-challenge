@@ -92,8 +92,9 @@ export const sepoliaBalancesQueryAtom = atomWithQuery((get) => {
 });
 
 // ---- Raw Balances (BigInt) for precise comparisons ----
-export const sepoliaRawBalancesQueryAtom = (address: string | null) =>
-  atomWithQuery(() => ({
+export const sepoliaRawBalancesQueryAtom = atomWithQuery((get) => {
+  const address = get(sepoliaAddressAtom);
+  return {
     queryKey: ["sepolia-raw-balances", address?.toLowerCase() ?? "none"],
     queryFn: async (): Promise<Record<string, bigint>> => {
       if (!address) return {};
@@ -153,7 +154,8 @@ export const sepoliaRawBalancesQueryAtom = (address: string | null) =>
     },
     enabled: Boolean(address),
     staleTime: 10_000,
-  }));
+  };
+});
 
 // ---- Allowance Query ----
 export const sepoliaAllowanceQueryAtom = (
