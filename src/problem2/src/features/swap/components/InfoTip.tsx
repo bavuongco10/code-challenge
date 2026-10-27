@@ -1,7 +1,13 @@
-import { useId } from "react";
+import { memo, useId } from "react";
 
 // CSS-only hover/focus tooltip, same pattern as WalletModeSwitch's "Coming soon".
-export function InfoTip({ label, text }: { label: string; text: string }) {
+export const InfoTip = memo(function InfoTip({
+  label,
+  text,
+}: {
+  label: string;
+  text: string;
+}) {
   const id = useId();
   return (
     <span className="group relative ml-1 inline-flex align-middle">
@@ -23,4 +29,4 @@ export function InfoTip({ label, text }: { label: string; text: string }) {
       </span>
     </span>
   );
-}
+});

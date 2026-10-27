@@ -1,10 +1,11 @@
 import { useSetAtom } from "jotai";
+import { memo } from "react";
 
 import { setPresetAtom } from "../atoms.ts";
 
 const PRESETS = [25, 50, 75, 100];
 
-export function AmountPresets() {
+export const AmountPresets = memo(function AmountPresets() {
   const setPreset = useSetAtom(setPresetAtom);
   return (
     <div className="flex gap-1">
@@ -21,4 +22,4 @@ export function AmountPresets() {
       ))}
     </div>
   );
-}
+});

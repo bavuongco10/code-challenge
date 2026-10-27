@@ -1,6 +1,6 @@
 # 0002. Sepolia wallet: wagmi 3 + Reown AppKit, Uniswap V3 quotes
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-27
 
 ## Context

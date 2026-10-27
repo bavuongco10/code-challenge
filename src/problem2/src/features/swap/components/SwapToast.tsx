@@ -1,17 +1,23 @@
 import { useAtom } from "jotai";
+import { memo } from "react";
 
 import { toastAtom } from "../atoms.ts";
+import { ETHERSCAN_TX_URL } from "../constants.ts";
 import { PixelIcon } from "./PixelIcon.tsx";
 import { Spinner } from "./Spinner.tsx";
 
-const TITLE = { pending: "Swapping", success: "Swapped", error: "Swap failed" };
+const TITLE = {
+  pending: "Swapping",
+  success: "Swapped",
+  error: "Swap failed",
+};
 const TONE = {
   pending: "is-pending",
   success: "is-success",
   error: "is-error",
 };
 
-export function SwapToast() {
+export const SwapToast = memo(function SwapToast() {
   const [toast, setToast] = useAtom(toastAtom);
   if (!toast) return null;
   const { status } = toast;
@@ -37,9 +43,23 @@ export function SwapToast() {
         )}
       </span>
       <div className="min-w-0 flex-1 font-mono">
-        <div className="toast-title font-pixel text-sm">{TITLE[status]}</div>
+        <div className="toast-title font-pixel text-sm">
+          {toast.title ?? TITLE[status]}
+        </div>
         <div className="toast-body text-sm text-muted">
-          {toast.sellAmount} {toast.sell} for {toast.buyAmount} {toast.buy}
+          {toast.message ??
+            `${toast.sellAmount} ${toast.sell} for ${toast.buyAmount} ${toast.buy}`}
+          {toast.hash && status !== "pending" && (
+            <a
+              id="swap-toast-tx"
+              href={ETHERSCAN_TX_URL(toast.hash)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pixel-focus mt-1 block text-xs text-primary underline"
+            >
+              View on Etherscan
+            </a>
+          )}
         </div>
       </div>
       {status !== "pending" && (
@@ -55,4 +75,4 @@ export function SwapToast() {
       )}
     </div>
   );
-}
+});

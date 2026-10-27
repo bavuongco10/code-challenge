@@ -20,7 +20,8 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: devices["Desktop Chrome"] }],
   webServer: {
-    command: "pnpm dev --port 5173 --strictPort",
+    command:
+      "node ./node_modules/vite/bin/vite.js dev --port 5173 --strictPort",
     url: "http://localhost:5173",
     reuseExistingServer: true,
   },

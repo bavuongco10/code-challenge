@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { ACTIONS, EVENTS, Joyride, type Step } from "react-joyride";
 
 import { tourDoneAtom } from "../atoms.ts";
@@ -51,7 +51,7 @@ const STEPS: Step[] = [
   },
 ];
 
-export function GuideTour() {
+export const GuideTour = memo(function GuideTour() {
   const [done, setDone] = useAtom(tourDoneAtom);
   // `done` persists only after Next or Skip; `run` is this visit only
   const [run, setRun] = useState(!done);
@@ -93,4 +93,4 @@ export function GuideTour() {
       )}
     </>
   );
-}
+});

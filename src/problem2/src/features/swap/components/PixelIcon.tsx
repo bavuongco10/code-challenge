@@ -1,3 +1,5 @@
+import { memo, type ReactNode } from "react";
+
 // 8x8 bitmaps drawn as 2x2 rects on a 16x16 grid.
 const ICONS = {
   gear: [
@@ -104,7 +106,20 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-export function PixelIcon({
+const ICON_ELEMENTS: Record<IconName, ReactNode[]> = Object.fromEntries(
+  (Object.keys(ICONS) as IconName[]).map((name) => [
+    name,
+    ICONS[name].flatMap((row, y) =>
+      [...row].map((c, x) =>
+        c === "#" ? (
+          <rect key={`${x}-${y}`} x={x * 2} y={y * 2} width="2" height="2" />
+        ) : null,
+      ),
+    ),
+  ]),
+) as Record<IconName, ReactNode[]>;
+
+export const PixelIcon = memo(function PixelIcon({
   name,
   className,
 }: {
@@ -119,13 +134,7 @@ export function PixelIcon({
       aria-hidden="true"
       className={className ?? "size-4"}
     >
-      {ICONS[name].flatMap((row, y) =>
-        [...row].map((c, x) =>
-          c === "#" ? (
-            <rect key={`${x}-${y}`} x={x * 2} y={y * 2} width="2" height="2" />
-          ) : null,
-        ),
-      )}
+      {ICON_ELEMENTS[name]}
     </svg>
   );
-}
+});

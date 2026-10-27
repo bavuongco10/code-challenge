@@ -1,10 +1,10 @@
 import { useSetAtom } from "jotai";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 import { flipAtom } from "../atoms.ts";
 import { PixelIcon } from "./PixelIcon.tsx";
 
-export function FlipButton() {
+export const FlipButton = memo(function FlipButton() {
   const flip = useSetAtom(flipAtom);
   const [turns, setTurns] = useState(0);
   return (
@@ -28,4 +28,4 @@ export function FlipButton() {
       </button>
     </div>
   );
-}
+});

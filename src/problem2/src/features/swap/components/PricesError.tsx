@@ -1,11 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
 
-import { pricesAtom, retryPricesAtom } from "../atoms.ts";
+import { isPricesErrorAtom, retryPricesAtom } from "../atoms.ts";
 
 export function PricesError() {
-  const prices = useAtomValue(pricesAtom);
+  const isError = useAtomValue(isPricesErrorAtom);
   const retry = useSetAtom(retryPricesAtom);
-  if (prices.state !== "error") return null;
+  if (!isError) return null;
   return (
     <div
       id="prices-error"

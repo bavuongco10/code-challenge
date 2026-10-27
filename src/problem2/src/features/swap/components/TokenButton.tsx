@@ -1,11 +1,12 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { memo } from "react";
 
 import { buyTokenAtom, pickerSideAtom, sellTokenAtom } from "../atoms.ts";
 import type { Side } from "../types.ts";
 import { PixelIcon } from "./PixelIcon.tsx";
 import { TokenIcon } from "./TokenIcon.tsx";
 
-export function TokenButton({ side }: { side: Side }) {
+export const TokenButton = memo(function TokenButton({ side }: { side: Side }) {
   const token = useAtomValue(side === "sell" ? sellTokenAtom : buyTokenAtom);
   const openPicker = useSetAtom(pickerSideAtom);
   return (
@@ -29,4 +30,4 @@ export function TokenButton({ side }: { side: Side }) {
       <PixelIcon name="chevron-down" className="size-4" />
     </button>
   );
-}
+});

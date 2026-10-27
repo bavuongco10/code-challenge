@@ -1,8 +1,6 @@
 import { useAtomValue } from "jotai";
 
-import { walletAtom } from "../walletAtoms.ts";
-
-const MAX_LINES = 5; // more are clipped when the viewport is short
+import { recentActivityAtom } from "../walletAtoms.ts";
 
 const time = (at: number) =>
   new Date(at).toLocaleTimeString("en-GB", {
@@ -11,7 +9,7 @@ const time = (at: number) =>
   });
 
 export function TradeLog() {
-  const items = useAtomValue(walletAtom)?.activity.slice(0, MAX_LINES) ?? [];
+  const items = useAtomValue(recentActivityAtom);
   return (
     <section
       id="trade-log"

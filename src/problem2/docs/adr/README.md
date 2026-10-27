@@ -11,4 +11,4 @@ Each ADR covers: Context, Decision, Consequences.
 | #    | Title                                                                                          | Status   |
 | ---- | ---------------------------------------------------------------------------------------------- | -------- |
 | 0001 | [Record architecture decisions](0001-record-architecture-decisions.md)                         | Accepted |
-| 0002 | [Sepolia wallet: wagmi 3 + Reown AppKit, Uniswap V3 quotes](0002-sepolia-wallet-and-quotes.md) | Proposed |
+| 0002 | [Sepolia wallet: wagmi 3 + Reown AppKit, Uniswap V3 quotes](0002-sepolia-wallet-and-quotes.md) | Accepted |

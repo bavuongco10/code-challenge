@@ -9,7 +9,7 @@ import {
   Label,
 } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { pickerSideAtom, pickTokenAtom, tokensAtom } from "../atoms.ts";
 import type { Side } from "../types.ts";
 import { balancesAtom, connectedAtom } from "../walletAtoms.ts";
@@ -37,11 +37,26 @@ function TokenPickerContent({
   const connected = useAtomValue(connectedAtom);
   const [query, setQuery] = useState("");
 
-  const q = query.trim().toLowerCase();
-  const shown = tokens.filter((t) => t.toLowerCase().includes(q));
-  const bal = (t: string) => balances?.[t] ?? 0;
-  const mine = connected ? shown.filter((t) => bal(t) > 0) : [];
-  const rest = connected ? shown.filter((t) => bal(t) <= 0) : shown;
+  const { mine, rest, isEmpty } = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const mineList: { symbol: string; balance: number }[] = [];
+    const restList: { symbol: string; balance: number }[] = [];
+
+    for (const symbol of tokens) {
+      if (q && !symbol.toLowerCase().includes(q)) continue;
+      const balance = balances?.[symbol] ?? 0;
+      if (connected && balance > 0) {
+        mineList.push({ symbol, balance });
+      } else {
+        restList.push({ symbol, balance });
+      }
+    }
+    return {
+      mine: mineList,
+      rest: restList,
+      isEmpty: mineList.length === 0 && restList.length === 0,
+    };
+  }, [tokens, query, balances, connected]);
 
   return (
     <>
@@ -86,18 +101,18 @@ function TokenPickerContent({
               className="min-h-0 flex-1 overflow-y-auto pb-2"
             >
               {mine.length > 0 && <Heading>Your tokens</Heading>}
-              {mine.map((t) => (
-                <TokenOption key={t} symbol={t} balance={bal(t)} />
+              {mine.map(({ symbol, balance }) => (
+                <TokenOption key={symbol} symbol={symbol} balance={balance} />
               ))}
               {mine.length > 0 && rest.length > 0 && (
                 <Heading>All tokens</Heading>
               )}
-              {rest.map((t) => (
-                <TokenOption key={t} symbol={t} balance={bal(t)} />
+              {rest.map(({ symbol, balance }) => (
+                <TokenOption key={symbol} symbol={symbol} balance={balance} />
               ))}
             </ComboboxOptions>
           </Combobox>
-          {shown.length === 0 && (
+          {isEmpty && (
             <p
               id="token-empty"
               role="status"

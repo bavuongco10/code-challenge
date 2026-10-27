@@ -2,13 +2,14 @@ import { Field, Input, Label } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
 
 import {
-  amountsAtom,
+  buyAmountAtom,
   buyTokenAtom,
-  insufficientAtom,
   pricesAtom,
   quoteAtom,
+  sellAmountAtom,
   sellTokenAtom,
   setAmountAtom,
+  sideInsufficientAtom,
 } from "../atoms.ts";
 import { formatAmount, formatUsd } from "../lib/format.ts";
 import type { Side } from "../types.ts";
@@ -17,14 +18,14 @@ import { AmountPresets } from "./AmountPresets.tsx";
 import { TokenButton } from "./TokenButton.tsx";
 
 export function AmountPanel({ side }: { side: Side }) {
-  const value = useAtomValue(amountsAtom)[side];
+  const value = useAtomValue(side === "sell" ? sellAmountAtom : buyAmountAtom);
   const setAmount = useSetAtom(setAmountAtom);
   const token = useAtomValue(side === "sell" ? sellTokenAtom : buyTokenAtom);
   const quote = useAtomValue(quoteAtom);
   const prices = useAtomValue(pricesAtom);
   const connected = useAtomValue(connectedAtom);
   const balances = useAtomValue(balancesAtom);
-  const insufficient = useAtomValue(insufficientAtom) && side === "sell";
+  const insufficient = useAtomValue(sideInsufficientAtom(side));
 
   const amount = quote ? quote[`${side}Amount`] : 0;
   const price = token && prices.state === "ready" ? prices.prices[token] : 0;

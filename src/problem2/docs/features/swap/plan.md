@@ -6,9 +6,9 @@ updates from the latest prices. Swapping needs a connected wallet. Full brief: `
 Two wallet modes, flipped with a switch (see [Wallet](#wallet)):
 
 - **Phase 1, Demo wallet:** a fake wallet stored in localStorage.
-- **Phase 2, Sepolia wallet:** a real testnet wallet. The switch shows it as disabled until it is built.
+- **Phase 2, Sepolia wallet:** a real testnet wallet using Reown AppKit and Uniswap V3 on Sepolia.
 
-E2E specs: `e2e/swap.spec.ts` and `e2e/wallet.spec.ts` (run with `pnpm test:e2e`). They find
+E2E specs: `e2e/swap.spec.ts`, `e2e/wallet.spec.ts` and `e2e/sepolia.spec.ts` (run with `pnpm test:e2e`). They find
 elements by the ids and check state through the classes listed in [UI contract](#ui-contract-e2e).
 
 Look: 8-bit pixel style, see [`impl/design.md`](impl/design.md). Build plan and task
@@ -22,6 +22,8 @@ breakdown: [`impl/README.md`](impl/README.md).
 - Icons: `https://raw.githubusercontent.com/Switcheo/token-icons/main/tokens/<SYMBOL>.svg`.
   If one fails to load, show a circle with the symbol's first letter.
 - Phase 1 has no backend: the wallet, balances, signing and confirmation are all faked (see Wallet).
+- Phase 2 reads Sepolia: balances, Uniswap V3 QuoterV2 quotes, allowance and gas over RPC.
+  USD values still come from prices.json by symbol (WETH uses the ETH price).
 
 ## Features
 
@@ -56,17 +58,21 @@ breakdown: [`impl/README.md`](impl/README.md).
 
 ### Validation (submit button state; disabled unless `is-ready` or `is-connect`)
 
-| Condition                      | Class               | Label                |
-| ------------------------------ | ------------------- | -------------------- |
-| Prices still loading           | `is-loading-prices` | `Loading prices…`    |
-| Prices failed to load          | `is-prices-error`   | `Prices unavailable` |
-| Either token not selected      | `is-select-token`   | `Select a token`     |
-| Amount empty, `0`, or only `.` | `is-enter-amount`   | `Enter an amount`    |
-| No wallet connected            | `is-connect`        | `Connect wallet`     |
-| Sell amount > sell balance     | `is-insufficient`   | `Not enough ETH`     |
-| Everything valid               | `is-ready`          | `Review`             |
+| Condition                      | Class               | Label                        |
+| ------------------------------ | ------------------- | ---------------------------- |
+| Prices still loading           | `is-loading-prices` | `Loading prices…`            |
+| Prices failed to load          | `is-prices-error`   | `Prices unavailable`         |
+| Either token not selected      | `is-select-token`   | `Select a token`             |
+| Amount empty, `0`, or only `.` | `is-enter-amount`   | `Enter an amount`            |
+| No wallet connected            | `is-connect`        | `Connect wallet`             |
+| Wallet on another chain (2)    | `is-wrong-chain`    | `Switch to Sepolia`          |
+| Quote in flight (2)            | `is-quoting`        | `Fetching quote…`            |
+| No pool / quoter reverted (2)  | `is-no-route`       | `No liquidity for this pair` |
+| Sell amount > sell balance     | `is-insufficient`   | `Not enough ETH`             |
+| Everything valid               | `is-ready`          | `Review`                     |
 
 - The rows are checked top to bottom and the first match wins. `is-connect` connects the wallet.
+  Rows marked (2) only happen in Sepolia mode; `is-wrong-chain` is enabled and asks the wallet to switch.
 - Insufficient balance: the sell amount and the sell balance both turn red (`.is-error`).
   The `ETH` in the label is the sell token's symbol.
 - Price load fails: `#prices-error` (`role="alert"`) shows "Couldn't load prices" with a Retry button.
@@ -116,8 +122,8 @@ breakdown: [`impl/README.md`](impl/README.md).
 
 - A header switch `#wallet-mode` offers `Demo` / `Sepolia`. Its value is saved in localStorage as
   `swap:walletMode` (`demo` | `sepolia`) and defaults to `demo`.
-- Until phase 2 ships, `Sepolia` is shown but disabled, with the tooltip "Coming soon". Each mode
-  keeps its own connection, so switching modes disconnects.
+- Each mode keeps its own connection, so switching modes disconnects. Switching mode resets any
+  token that isn't in the new list (sell back to ETH, buy to none).
 
 ### Demo wallet (phase 1)
 
@@ -154,7 +160,7 @@ breakdown: [`impl/README.md`](impl/README.md).
   - Each fills the sell amount with balance × percent, keeping full precision (up to 8 decimals,
     trailing zeros trimmed), and switches to exact-in mode.
   - Max fills the whole balance. ponytail: the demo has no gas, so nothing is kept back.
-    Phase 2 keeps a gas reserve.
+    Sepolia keeps a gas reserve (see below).
 
 ### Swap flow
 
@@ -177,15 +183,32 @@ breakdown: [`impl/README.md`](impl/README.md).
 
 Decisions: [ADR 0002](../../adr/0002-sepolia-wallet-and-quotes.md). Build plan: [`impl/phase2-sepolia.md`](impl/phase2-sepolia.md).
 
-- The header shows a testnet badge, and the account menu says "You are in testnet mode".
+- Tokens: only ETH (native), WETH, USDC and UNI are listed. A symbol with no price shows `$0`.
+- Connect (`#connect-wallet` or submit in `is-connect`) opens the Reown AppKit modal (browser
+  wallets, WalletConnect QR, Coinbase). wagmi reconnects on reload. `#disconnect` disconnects;
+  `#manage-wallet` in the account menu opens AppKit's account view.
+- Account or chain changed in the wallet: balances and quote refetch. No account = disconnected.
+- The non-typed side shows the on-chain quote (best of fee tiers 0.05% / 0.3% / 1%), not
+  prices.json math. Quotes are debounced 300 ms and refreshed every 15 s while the review
+  dialog is open.
+- The header shows a `TESTNET` badge (`#testnet-badge`), and the account menu says "You are in
+  testnet mode" with a Sepolia faucet link.
 - If the wallet is on another network, it is asked to switch first. Refusing shows the toast
   "Failed to switch networks — switch to Sepolia in your wallet's settings." The review
   dialog stays open, so the user can retry.
-- Max keeps some ETH back for gas. When the amount fits the balance but not the gas, the label
-  says "Not enough ETH" and a banner reads "Not enough ETH on Sepolia to swap".
-- Review rows add Network cost (`<0.001 ETH`).
+- Max on ETH keeps `0.002 ETH` back for gas. If sell ETH + reserve > balance, or ETH < reserve
+  for an ERC-20 sell, the label says "Not enough ETH" and `#gas-banner` reads
+  "Not enough ETH on Sepolia to swap".
+- Review rows add Network cost (`#review-network-cost`): `<0.001 ETH` below that, else 3
+  significant digits.
+- Confirm: chain check → `approve` the exact amount if the ERC-20 allowance is short (button:
+  "Approve USDC in wallet") → swap tx → dialog closes. A rejected signature keeps the dialog
+  open with no toast.
 - After signing the steps are the same as phase 1. Pending lasts until the transaction is
-  mined, and balances come from the chain afterwards.
+  mined, and balances come from the chain afterwards. Success and error toasts link to
+  Etherscan (`#swap-toast-tx`); a reverted receipt shows "Swap failed".
+- Activity is stored per address in `swap:sepoliaActivity:<address>` (with the tx `hash`).
+  Balances are never stored.
 
 ### Guided tour
 
@@ -244,12 +267,16 @@ them without updating the spec.
 | Toast (`role="status"`) | `#swap-toast` (`.is-pending` / `.is-success` / `.is-error`)                |
 | Toast parts             | `.toast-title`, `.toast-body`, `#swap-toast-close`                         |
 | Guided tour             | `#tour-start` (replay), `#tour-tooltip`                                    |
+| Sepolia only            | `#testnet-badge`, `#manage-wallet`, `#gas-banner`, `#review-network-cost`  |
+| Sepolia toast link      | `#swap-toast-tx`                                                           |
 
 ## Gotchas
 
 - Prices date from 2023 and never change, so they are fetched once and not polled.
 - ponytail: demo balances use JS numbers for the arithmetic, so long chains of swaps can drift by
-  about 1e-12. That's fine for a demo. Phase 2 switches to bigint base units.
+  about 1e-12. That's fine for a demo. Sepolia uses bigint base units (viem).
+- Sepolia pool liquidity is thin, so rates can be far from prices.json; `is-no-route` and the
+  min-received check are the guard.
 
 ## History
 

@@ -7,6 +7,7 @@ export type Activity = {
   buy: string;
   buyAmount: string;
   at: number; // ms epoch
+  hash?: string;
 };
 export type Wallet = {
   connected: boolean;
@@ -20,6 +21,9 @@ export type Quote = {
   sellAmount: number;
   buyAmount: number;
   rate: number; // buy per 1 sell
+  sellRaw?: bigint;
+  buyRaw?: bigint;
+  fee?: number;
 };
 export type SubmitState =
   | "loading-prices"
@@ -27,6 +31,9 @@ export type SubmitState =
   | "select-token"
   | "enter-amount"
   | "connect"
+  | "wrong-chain"
+  | "quoting"
+  | "no-route"
   | "insufficient"
   | "ready"; // DOM class = `is-${state}`
 export type SlippageLevel = "high" | "very-high" | null;
@@ -36,4 +43,12 @@ export type Toast = {
   sellAmount: string;
   buy: string;
   buyAmount: string; // formatted
+  hash?: string;
+  message?: string;
+  title?: string;
 } | null;
+export type SepoliaToken = {
+  symbol: string;
+  address: `0x${string}` | "native";
+  decimals: number;
+};

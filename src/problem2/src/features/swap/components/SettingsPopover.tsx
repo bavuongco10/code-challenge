@@ -1,5 +1,6 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useAtom, useAtomValue } from "jotai";
+import { memo } from "react";
 
 import {
   deadlineInputAtom,
@@ -21,7 +22,7 @@ const LEVEL = {
   "very-high": "is-very-high text-danger",
 };
 
-export function SettingsPopover() {
+export const SettingsPopover = memo(function SettingsPopover() {
   const [slippage, setSlippage] = useAtom(slippageInputAtom);
   const [deadline, setDeadline] = useAtom(deadlineInputAtom);
   const level = useAtomValue(slippageLevelAtom);
@@ -123,4 +124,4 @@ export function SettingsPopover() {
       </PopoverPanel>
     </Popover>
   );
-}
+});

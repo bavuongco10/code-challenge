@@ -12,7 +12,11 @@ Live demo: https://bavuongco10.github.io/code-challenge/
 - Flip button, an invertible rate line, details (fee, slippage, minimum received) and settings
 - Wallet: connect, balances, 25/50/75/Max, insufficient-balance checks, review → confirm → toasts, trade log
 - Loading and error states for prices, with Retry
-- Demo wallet: a fake wallet stored in localStorage
+- Two wallet modes, switched in the header:
+  - **Demo** (phase 1): a fake wallet stored in localStorage
+  - **Sepolia** (phase 2): a real testnet wallet. Connect with Reown AppKit (browser wallets,
+    WalletConnect QR, Coinbase), on-chain Uniswap V3 quotes, approve + swap, pending until mined,
+    Etherscan links. Tokens: ETH, WETH, USDC, UNI
 - Guided tour on first visit (replay with the header `?` button)
 
 Full rules and edge cases: [`docs/features/swap/plan.md`](docs/features/swap/plan.md).
@@ -20,7 +24,7 @@ Full rules and edge cases: [`docs/features/swap/plan.md`](docs/features/swap/pla
 ## Stack
 
 React 19, TypeScript, Vite 8, Jotai + TanStack Query, Tailwind CSS 4, Headless UI, react-joyride,
-Vitest, Playwright, oxlint, Prettier. Package manager is pnpm, Node version is in `.nvmrc`.
+wagmi 3 + viem + Reown AppKit (Sepolia mode only, lazy-loaded), Vitest, Playwright, oxlint, Prettier. Package manager is pnpm, Node version is in `.nvmrc`.
 
 ## Getting started
 
@@ -31,6 +35,19 @@ pnpm install  # also enables the pre-commit hook
 pnpm dev
 ```
 
+### Sepolia mode (optional)
+
+Demo mode needs no setup. For Sepolia, copy `.env.example` to `.env.local` and fill in:
+
+| Variable                | What                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `VITE_REOWN_PROJECT_ID` | Project id from [cloud.reown.com](https://cloud.reown.com); falls back to a built-in dev id |
+| `VITE_SEPOLIA_RPC_URL`  | Sepolia RPC URL; falls back to wagmi's public RPC                                           |
+
+Both ship in the bundle, so they must be public values. Get test ETH from a
+[Sepolia faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia) (linked in
+the account menu too).
+
 ## Scripts
 
 | Command                | What it does                             |
@@ -40,15 +57,18 @@ pnpm dev
 | `pnpm preview`         | Serve the build                          |
 | `pnpm check`           | Typecheck + lint + format check          |
 | `pnpm exec vitest run` | Unit tests (`pnpm test` runs watch mode) |
-| `pnpm test:e2e`        | Playwright e2e tests (`e2e/`)            |
+| `pnpm test:e2e`        | Playwright e2e tests (`e2e/`, offline)   |
 | `pnpm format`          | Format with Prettier                     |
 
 ## Project layout
 
 Code is grouped by feature under `src/features/<feature>/`. Shared code lives in `src/shared/`,
 and the app shell is in `src/app/`. Conventions are in [`AGENTS.md`](AGENTS.md), design
-decisions in [`docs/adr/`](docs/adr/), and the build plan in
-[`docs/features/swap/impl/`](docs/features/swap/impl/README.md).
+decisions in [`docs/adr/`](docs/adr/), and the build plans in
+[`docs/features/swap/impl/`](docs/features/swap/impl/README.md) (phase 1) and
+[`phase2-sepolia.md`](docs/features/swap/impl/phase2-sepolia.md) (phase 2). Chain-specific code
+lives in `src/features/swap/sepolia/` and is loaded with `import()` only when Sepolia mode is on.
+The e2e Sepolia spec uses a fake EIP-1193 wallet (`e2e/fakeProvider.ts`) and mocked RPC.
 
 ## Deploy
 

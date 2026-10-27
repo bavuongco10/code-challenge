@@ -104,4 +104,11 @@ describe("wallet atoms", () => {
     expect(s.get(connectedAtom)).toBe(false);
     expect(mem.get(WALLET_MODE_KEY)).toBe('"sepolia"');
   });
+
+  it("in sepolia mode, reads sepolia wallet and activity", () => {
+    const s = createStore();
+    s.set(walletModeAtom, "sepolia");
+    expect(s.get(connectedAtom)).toBe(false);
+    expect(s.get(walletAtom)).toBeNull();
+  });
 });

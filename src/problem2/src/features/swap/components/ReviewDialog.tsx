@@ -8,6 +8,7 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 import { useAtomValue, useSetAtom } from "jotai";
+import { useEffect, useState } from "react";
 
 import {
   minReceivedAtom,
@@ -16,14 +17,20 @@ import {
   reviewOpenAtom,
   slippageAtom,
 } from "../atoms.ts";
+import { MIN_RECEIVED_HELP, SLIPPAGE_HELP } from "../constants.ts";
 import {
   formatAmount,
   formatPercent,
   formatRate,
   formatUsd,
 } from "../lib/format.ts";
-import { MIN_RECEIVED_HELP, SLIPPAGE_HELP } from "../constants.ts";
-import { confirmingAtom, confirmSwapAtom } from "../swapFlow.ts";
+import { fetchNetworkCost } from "../sepolia/sepoliaQueryAtoms.ts";
+import {
+  confirmingAtom,
+  confirmingTextAtom,
+  confirmSwapAtom,
+} from "../swapFlow.ts";
+import { walletModeAtom } from "../walletAtoms.ts";
 import { InfoTip } from "./InfoTip.tsx";
 import { PixelIcon } from "./PixelIcon.tsx";
 import { Spinner } from "./Spinner.tsx";
@@ -53,24 +60,29 @@ function Row({
   );
 }
 
-export function ReviewDialog() {
-  const open = useAtomValue(reviewOpenAtom);
-  const setOpen = useSetAtom(reviewOpenAtom);
+function ReviewDialogContent({ onClose }: { onClose: () => void }) {
   const quote = useAtomValue(quoteAtom);
   const prices = useAtomValue(pricesAtom);
   const slippage = useAtomValue(slippageAtom);
   const min = useAtomValue(minReceivedAtom);
   const confirming = useAtomValue(confirmingAtom);
+  const confirmingText = useAtomValue(confirmingTextAtom);
   const confirm = useSetAtom(confirmSwapAtom);
+  const mode = useAtomValue(walletModeAtom);
+
+  const [networkCost, setNetworkCost] = useState("<0.001 ETH");
+
+  useEffect(() => {
+    if (mode === "sepolia") {
+      void fetchNetworkCost().then(setNetworkCost);
+    }
+  }, [mode]);
+
   if (prices.state !== "ready" || !quote || min === null) return null;
   const p = prices.prices;
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => !confirming && setOpen(false)}
-      className="relative z-50"
-    >
+    <>
       <DialogBackdrop className="fixed inset-0 bg-shadow/70" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel
@@ -85,8 +97,8 @@ export function ReviewDialog() {
               type="button"
               aria-label="Close"
               disabled={confirming}
-              onClick={() => setOpen(false)}
-              className="pixel-focus pixel-btn p-1"
+              onClick={onClose}
+              className="pixel-btn pixel-focus p-1"
             >
               <PixelIcon name="close" />
             </button>
@@ -141,6 +153,12 @@ export function ReviewDialog() {
                       {formatAmount(min)} {quote.buy}
                     </dd>
                   </div>
+                  {mode === "sepolia" && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted">Network cost</dt>
+                      <dd id="review-network-cost">{networkCost}</dd>
+                    </div>
+                  )}
                 </DisclosurePanel>
               </>
             )}
@@ -150,11 +168,11 @@ export function ReviewDialog() {
             type="button"
             disabled={confirming}
             onClick={() => void confirm()}
-            className={`pixel-focus pixel-btn flex w-full items-center justify-center gap-2 bg-primary p-3 font-pixel text-on-fill ${confirming ? "is-confirming" : ""}`}
+            className={`pixel-btn pixel-focus flex w-full items-center justify-center gap-2 bg-primary p-3 font-pixel text-on-fill ${confirming ? "is-confirming" : ""}`}
           >
             {confirming ? (
               <>
-                <Spinner /> Confirm in wallet
+                <Spinner /> {confirmingText ?? "Confirm in wallet"}
               </>
             ) : (
               "Confirm swap"
@@ -162,6 +180,22 @@ export function ReviewDialog() {
           </button>
         </DialogPanel>
       </div>
+    </>
+  );
+}
+
+export function ReviewDialog() {
+  const open = useAtomValue(reviewOpenAtom);
+  const setOpen = useSetAtom(reviewOpenAtom);
+  const confirming = useAtomValue(confirmingAtom);
+
+  return (
+    <Dialog
+      open={open}
+      onClose={() => !confirming && setOpen(false)}
+      className="relative z-50"
+    >
+      {open && <ReviewDialogContent onClose={() => setOpen(false)} />}
     </Dialog>
   );
 }

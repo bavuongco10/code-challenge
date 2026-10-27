@@ -8,22 +8,51 @@ import {
   toastAtom,
 } from "./atoms.ts";
 import { formatAmount } from "./lib/format.ts";
+import {
+  confirmingAtom as sepoliaConfirmingAtom,
+  confirmingTextAtom as sepoliaConfirmingTextAtom,
+  confirmSepoliaSwapAtom,
+} from "./sepolia/sepoliaSwapFlow.ts";
 import type { Toast } from "./types.ts";
-import { applySwapAtom } from "./walletAtoms.ts";
+import { applySwapAtom, walletModeAtom } from "./walletAtoms.ts";
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-export const confirmingAtom = atom(false);
+const demoConfirmingAtom = atom(false);
+
+export const confirmingAtom = atom(
+  (get) =>
+    get(walletModeAtom) === "sepolia"
+      ? get(sepoliaConfirmingAtom)
+      : get(demoConfirmingAtom),
+  (_get, set, val: boolean) => {
+    set(demoConfirmingAtom, val);
+  },
+);
+
+export const confirmingTextAtom = atom((get) => {
+  if (get(walletModeAtom) === "sepolia") {
+    return get(sepoliaConfirmingTextAtom);
+  }
+  return null;
+});
 
 export const confirmSwapAtom = atom(null, async (get, set) => {
+  const mode = get(walletModeAtom);
+  if (mode === "sepolia") {
+    await set(confirmSepoliaSwapAtom);
+    return;
+  }
+
+  // Demo confirm flow
   const q = get(quoteAtom);
-  if (!q || get(confirmingAtom)) return;
+  if (!q || get(demoConfirmingAtom)) return;
   const sellAmount = formatAmount(q.sellAmount);
   const buyAmount = formatAmount(q.buyAmount);
   const base = { sell: q.sell, sellAmount, buy: q.buy, buyAmount };
-  set(confirmingAtom, true);
+  set(demoConfirmingAtom, true);
   await wait(SIGN_MS);
-  set(confirmingAtom, false);
+  set(demoConfirmingAtom, false);
   set(reviewOpenAtom, false);
   set(resetAmountsAtom);
   set(toastAtom, { ...base, status: "pending" });

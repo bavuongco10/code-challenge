@@ -10,11 +10,11 @@ import { InfoTip } from "./InfoTip.tsx";
 import { PixelIcon } from "./PixelIcon.tsx";
 
 import {
+  isCustomSlippageAtom,
   minReceivedAtom,
   pricesAtom,
   quoteAtom,
   slippageAtom,
-  slippageInputAtom,
 } from "../atoms.ts";
 import { MIN_RECEIVED_HELP, SLIPPAGE_HELP } from "../constants.ts";
 import { formatAmount, formatPercent, formatRate } from "../lib/format.ts";
@@ -23,7 +23,7 @@ export function RateDetails() {
   const quote = useAtomValue(quoteAtom);
   const prices = useAtomValue(pricesAtom);
   const slippage = useAtomValue(slippageAtom);
-  const custom = useAtomValue(slippageInputAtom) !== "";
+  const custom = useAtomValue(isCustomSlippageAtom);
   const min = useAtomValue(minReceivedAtom);
   const [inverted, setInverted] = useState(false);
   if (!quote || prices.state !== "ready" || min === null) return null;

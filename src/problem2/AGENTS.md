@@ -6,7 +6,7 @@
 - State: Jotai 3 (`jotai`). Don't add Redux/Zustand/Context-based stores.
 - Server data: TanStack Query 5 (`@tanstack/react-query`) bridged into Jotai by `jotai-tanstack-query`.
 - Styling: Tailwind CSS 4 via `@tailwindcss/vite` (no `tailwind.config.js`; config lives in CSS).
-- UI primitives: Headless UI 2 (`@headlessui/react`). Don't add other component libraries (MUI, Radix, shadcn...).
+- UI primitives: Headless UI 2 (`@headlessui/react`). Don't add other component libraries (MUI, Radix, shadcn...). Exception: Reown AppKit for wallet connection modal in phase 2.
 - Lint: oxlint (`.oxlintrc.json`). Format: Prettier (`.prettierrc`, defaults). No ESLint or Biome.
 - Package manager: **pnpm** (`pnpm-lock.yaml`). Don't use npm/yarn/bun.
 - Node: 26.12.1 (`.nvmrc`).

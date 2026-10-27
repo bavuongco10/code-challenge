@@ -1,6 +1,6 @@
 # Swap phase 2: Sepolia wallet, implementation plan
 
-Status: planned. Turns the disabled `Sepolia` wallet mode into a real testnet wallet that
+Status: completed. Turns the disabled `Sepolia` wallet mode into a real testnet wallet that
 connects with Reown AppKit (wagmi 3) and quotes and swaps on Uniswap V3 on Sepolia. Target
 behaviour: [`../plan.md`](../plan.md) → Sepolia wallet. Tech decisions:
 [ADR 0002](../../../adr/0002-sepolia-wallet-and-quotes.md). Same protocol as phase 1
@@ -52,7 +52,7 @@ ETH price). A symbol with no price shows `$0`.
 
 ## Behaviour changes vs phase 1
 
-Additions to `../plan.md`; S07 moves them there when it ships.
+Shipped; these now live in [`../plan.md`](../plan.md) (Validation, Wallet → Sepolia, UI contract).
 
 - `#wallet-mode` `Sepolia` is enabled; the "Coming soon" tooltip goes.
 - In Sepolia mode the picker lists only `SEPOLIA_TOKENS`. Switching mode resets any token
