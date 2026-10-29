@@ -9,7 +9,7 @@
 3. **`blockchain` isn't on `WalletBalance`.** `balance.blockchain` is used, but the interface doesn't declare it. The `any` type on `getPriority(blockchain: any)` hides the error. Add `blockchain` to the interface with a union type and drop `any`.
 4. **The sort comparator returns `undefined` when two priorities are equal.** A comparator must return a number for every pair. Otherwise the order is inconsistent between engines. Use `rightPriority - leftPriority`.
 5. **`rows` maps over the wrong array.** `rows` is built from `sortedBalances`, but each item is typed as `FormattedWalletBalance`. The type is false, so `balance.formatted` is always `undefined`, and `formattedBalances` is computed and never used. Build the rows from the formatted list.
-6. **`classes` is never defined.** There's no `useStyles()` or import, so this is a `ReferenceError`.
+6. **`classes` is never defined.** There's no `useStyles()` or import, so this is a `ReferenceError`. The refactor drops `className`; the row styles belong in `WalletRow` itself.
 7. **`prices[balance.currency]` can be `undefined`.** A token with no price gives `NaN` for the USD value. Fall back to `0`, or show a placeholder.
 
 ### Wasted work and anti-patterns
@@ -19,7 +19,7 @@
 10. **Priority is computed more than once per item.** It's computed once in the filter, then twice per comparison in the sort, which is O(n log n) calls. Compute it once per balance, then filter and sort on that value.
 11. **`formattedBalances` and `rows` aren't memoized.** They're rebuilt on every render, including renders that have nothing to do with balances. Memoize the formatting together with the sort, and memoize rows on `[formatted, prices]`.
 12. **`key={index}`.** Index keys break React's list reconciliation when the list is filtered or re-sorted, which happens here. Row state or DOM can end up attached to the wrong item. Use a stable id such as `` `${blockchain}-${currency}` ``.
-13. **`toFixed()` with no argument rounds to 0 decimals.** `0.5 ETH` shows as `"1"`. Pass the precision you want, or use `Intl.NumberFormat`.
+13. **`toFixed()` with no argument rounds to 0 decimals.** `0.5 ETH` shows as `"1"`. A single fixed precision is wrong too: 2 decimals hides most of a BTC balance (`0.004 BTC` → `"0.00"`) yet is right for stablecoins. Use a per-token display precision.
 14. **`children` is pulled out of props and then ignored.** That silently swallows children. Either render them or don't destructure them.
 15. **`BoxProps` are spread onto a plain `<div>`.** Box-only props (`sx`, `p`, `m`, and so on) end up on the DOM element, which triggers React unknown-prop warnings, and they have no effect. Render a `<Box>` instead, or type the props as `React.HTMLAttributes<HTMLDivElement>`.
 16. **Minor:**
@@ -52,10 +52,14 @@ const PRIORITY: Record<string, number> = {
 };
 const getPriority = (blockchain: string): number => PRIORITY[blockchain] ?? -99;
 
+// Display precision per token; unknown tokens get 4.
+// ponytail: hard-coded map; read it from token metadata when the API exposes it.
+const DECIMALS: Record<string, number> = { BTC: 8, ETH: 6, USDC: 2, USDT: 2 };
+const format = (b: WalletBalance) => b.amount.toFixed(DECIMALS[b.currency] ?? 4);
+
 type Props = BoxProps;
 
 const WalletPage = ({ children, ...rest }: Props) => {
-  const classes = useStyles();
   const balances = useWalletBalances();
   const prices = usePrices();
 
@@ -66,7 +70,7 @@ const WalletPage = ({ children, ...rest }: Props) => {
         .map((b) => ({ b, priority: getPriority(b.blockchain) }))
         .filter(({ b, priority }) => priority > -99 && b.amount > 0)
         .sort((l, r) => r.priority - l.priority)
-        .map(({ b }) => ({ ...b, formatted: b.amount.toFixed(2) })),
+        .map(({ b }) => ({ ...b, formatted: format(b) })),
     [balances],
   );
 
@@ -75,13 +79,12 @@ const WalletPage = ({ children, ...rest }: Props) => {
       formattedBalances.map((b) => (
         <WalletRow
           key={`${b.blockchain}-${b.currency}`}
-          className={classes.row}
           amount={b.amount}
           usdValue={(prices[b.currency] ?? 0) * b.amount}
           formattedAmount={b.formatted}
         />
       )),
-    [formattedBalances, prices, classes.row],
+    [formattedBalances, prices],
   );
 
   return (
@@ -97,205 +100,20 @@ export default WalletPage;
 
 ## Side by side
 
-Each row pairs a piece of the original with its replacement. The numbers in the Fixes column point to the issues listed above.
-
-<table>
-<tr><th>Problem</th><th>Refactored</th><th>Fixes</th></tr>
-
-<tr><td>
-
-```tsx
-interface WalletBalance {
-  currency: string;
-  amount: number;
-}
-interface FormattedWalletBalance {
-  currency: string;
-  amount: number;
-  formatted: string;
-}
-interface Props extends BoxProps {}
-```
-
-</td><td>
-
-```tsx
-type Blockchain =
-  'Osmosis' | 'Ethereum' | 'Arbitrum' | 'Zilliqa' | 'Neo';
-
-interface WalletBalance {
-  currency: string;
-  amount: number;
-  blockchain: Blockchain;
-}
-interface FormattedWalletBalance extends WalletBalance {
-  formatted: string;
-}
-type Props = BoxProps;
-```
-
-</td><td>3, 16</td></tr>
-
-<tr><td>
-
-```tsx
-// inside the component
-const getPriority = (blockchain: any): number => {
-  switch (blockchain) {
-    case 'Osmosis':  return 100
-    case 'Ethereum': return 50
-    case 'Arbitrum': return 30
-    case 'Zilliqa':  return 20
-    case 'Neo':      return 20
-    default:         return -99
-  }
-}
-```
-
-</td><td>
-
-```tsx
-// module level
-const PRIORITY: Record<string, number> = {
-  Osmosis: 100,
-  Ethereum: 50,
-  Arbitrum: 30,
-  Zilliqa: 20,
-  Neo: 20,
-};
-const getPriority = (blockchain: string): number =>
-  PRIORITY[blockchain] ?? -99;
-```
-
-</td><td>3, 9</td></tr>
-
-<tr><td>
-
-```tsx
-const WalletPage: React.FC<Props> = (props: Props) => {
-  const { children, ...rest } = props;
-  const balances = useWalletBalances();
-  const prices = usePrices();
-```
-
-</td><td>
-
-```tsx
-const WalletPage = ({ children, ...rest }: Props) => {
-  const classes = useStyles();
-  const balances = useWalletBalances();
-  const prices = usePrices();
-```
-
-</td><td>6, 16</td></tr>
-
-<tr><td>
-
-```tsx
-const sortedBalances = useMemo(() => {
-  return balances.filter((balance: WalletBalance) => {
-    const balancePriority = getPriority(balance.blockchain);
-    if (lhsPriority > -99) {
-      if (balance.amount <= 0) {
-        return true;
-      }
-    }
-    return false
-  }).sort((lhs: WalletBalance, rhs: WalletBalance) => {
-    const leftPriority = getPriority(lhs.blockchain);
-    const rightPriority = getPriority(rhs.blockchain);
-    if (leftPriority > rightPriority) {
-      return -1;
-    } else if (rightPriority > leftPriority) {
-      return 1;
-    }
-  });
-}, [balances, prices]);
-
-const formattedBalances = sortedBalances.map((balance: WalletBalance) => {
-  return {
-    ...balance,
-    formatted: balance.amount.toFixed()
-  }
-})
-```
-
-</td><td>
-
-```tsx
-const formattedBalances = useMemo<FormattedWalletBalance[]>(
-  () =>
-    balances
-      .map((b) => ({ b, priority: getPriority(b.blockchain) }))
-      .filter(({ b, priority }) => priority > -99 && b.amount > 0)
-      .sort((l, r) => r.priority - l.priority)
-      .map(({ b }) => ({ ...b, formatted: b.amount.toFixed(2) })),
-  [balances],
-);
-```
-
-</td><td>1, 2, 4, 8, 10, 11, 13</td></tr>
-
-<tr><td>
-
-```tsx
-const rows = sortedBalances.map(
-  (balance: FormattedWalletBalance, index: number) => {
-    const usdValue = prices[balance.currency] * balance.amount;
-    return (
-      <WalletRow
-        className={classes.row}
-        key={index}
-        amount={balance.amount}
-        usdValue={usdValue}
-        formattedAmount={balance.formatted}
-      />
-    )
-  })
-```
-
-</td><td>
-
-```tsx
-const rows = useMemo(
-  () =>
-    formattedBalances.map((b) => (
-      <WalletRow
-        key={`${b.blockchain}-${b.currency}`}
-        className={classes.row}
-        amount={b.amount}
-        usdValue={(prices[b.currency] ?? 0) * b.amount}
-        formattedAmount={b.formatted}
-      />
-    )),
-  [formattedBalances, prices, classes.row],
-);
-```
-
-</td><td>5, 6, 7, 11, 12</td></tr>
-
-<tr><td>
-
-```tsx
-  return (
-    <div {...rest}>
-      {rows}
-    </div>
-  )
-}
-```
-
-</td><td>
-
-```tsx
-  return (
-    <Box {...rest}>
-      {rows}
-      {children}
-    </Box>
-  );
-};
-```
-
-</td><td>14, 15</td></tr>
-</table>
+| Original | Refactored | Fixes |
+|---|---|---|
+| `WalletBalance` without `blockchain`; `getPriority(blockchain: any)` | `blockchain: Blockchain` union; typed `getPriority` | 3 |
+| `switch` inside the component, duplicate `20` cases | module-level `PRIORITY` lookup | 9 |
+| `if (lhsPriority > -99) { if (balance.amount <= 0) return true }` | `priority > -99 && b.amount > 0` | 1, 2 |
+| comparator returns `-1` / `1` / `undefined` | `r.priority - l.priority` | 4 |
+| `getPriority` called in filter and twice per comparison | computed once per balance, then filter/sort | 10 |
+| `useMemo(..., [balances, prices])` | `useMemo(..., [balances])` | 8 |
+| `formattedBalances` / `rows` rebuilt every render | both memoized | 11 |
+| `amount.toFixed()` | `toFixed(DECIMALS[currency] ?? 4)` | 13 |
+| `rows` from `sortedBalances`, typed as formatted | `rows` from `formattedBalances` | 5 |
+| `className={classes.row}` (undefined) | removed | 6 |
+| `prices[currency] * amount` | `(prices[currency] ?? 0) * amount` | 7 |
+| `key={index}` | `` key={`${blockchain}-${currency}`} `` | 12 |
+| `children` destructured, dropped | rendered | 14 |
+| `<div {...rest}>` with `BoxProps` | `<Box {...rest}>` | 15 |
+| `interface Props extends BoxProps {}`, `React.FC<Props> = (props: Props)` | `type Props = BoxProps`, typed destructure | 16 |
