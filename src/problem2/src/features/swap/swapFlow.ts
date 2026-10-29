@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { formatUnits } from "viem";
 
 import { PENDING_MS, SIGN_MS, TOAST_MS } from "./constants.ts";
 import {
@@ -7,7 +8,6 @@ import {
   reviewOpenAtom,
   toastAtom,
 } from "./atoms.ts";
-import { formatAmount } from "./lib/format.ts";
 import {
   confirmingAtom as sepoliaConfirmingAtom,
   confirmingTextAtom as sepoliaConfirmingTextAtom,
@@ -47,8 +47,9 @@ export const confirmSwapAtom = atom(null, async (get, set) => {
   // Demo confirm flow
   const q = get(quoteAtom);
   if (!q || get(demoConfirmingAtom)) return;
-  const sellAmount = formatAmount(q.sellAmount);
-  const buyAmount = formatAmount(q.buyAmount);
+  // Exact 8-decimal strings: the wallet is credited exactly what was quoted.
+  const sellAmount = formatUnits(q.sellRaw ?? 0n, 8);
+  const buyAmount = formatUnits(q.buyRaw ?? 0n, 8);
   const base = { sell: q.sell, sellAmount, buy: q.buy, buyAmount };
   set(demoConfirmingAtom, true);
   await wait(SIGN_MS);

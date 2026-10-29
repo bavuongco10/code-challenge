@@ -176,6 +176,8 @@ breakdown: [`impl/README.md`](impl/README.md).
 4. About 2 s later the toast switches to `is-success`: "Swapped" / `1 ETH for 2000 USDC`,
    gains a close button (`#swap-toast-close`), and dismisses itself after 10 s.
    At that moment the balances update (sell − amount, buy + quoted amount) and an activity entry is added.
+   Demo quotes are exact bigint maths in 8-decimal units (floor the buy side; exact-out rounds the
+   sell side up). The toast, activity and balances use those exact amounts, not the 6-digit display.
 5. If the balance changed in the meantime and is now too low, the swap fails: an `is-error`
    toast says "Swap failed" and the balances stay unchanged.
 

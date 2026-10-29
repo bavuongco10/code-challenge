@@ -21,7 +21,7 @@ export type Quote = {
   sellAmount: number;
   buyAmount: number;
   rate: number; // buy per 1 sell
-  sellRaw?: bigint;
+  sellRaw?: bigint; // sepolia: token decimals; demo: 8 decimals
   buyRaw?: bigint;
   fee?: number;
 };

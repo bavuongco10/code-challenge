@@ -185,13 +185,19 @@ export const quoteAtom = atom((get): Quote | null => {
   const ps = prices[sell];
   const pb = prices[buy];
   if (!ps || !pb) return null;
+  // Exact maths in 8-decimal units; exact-out rounds the sell side up.
   const exactIn = get(typedSideAtom) === "sell";
+  const typed = toRawUnits(get(typedAmountAtom), 8);
+  const sellRaw = exactIn ? typed : convert(typed, pb, ps, true);
+  const buyRaw = exactIn ? convert(typed, ps, pb) : typed;
   return {
     sell,
     buy,
-    sellAmount: exactIn ? amount : convert(amount, pb, ps),
-    buyAmount: exactIn ? convert(amount, ps, pb) : amount,
+    sellAmount: Number(formatUnits(sellRaw, 8)),
+    buyAmount: Number(formatUnits(buyRaw, 8)),
     rate: ps / pb,
+    sellRaw,
+    buyRaw,
   };
 });
 
