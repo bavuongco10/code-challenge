@@ -8,8 +8,6 @@ const plain = (n: number, maxFrac: number) =>
 
 export const formatAmount = (n: number) => plain(Number(n.toPrecision(6)), 20);
 
-export const formatBalance = (n: number) => plain(n, 8);
-
 export function formatUsd(n: number): string {
   if (n === 0) return "$0";
   if (n < 0.01) return "<$0.01";

@@ -112,7 +112,6 @@ sanitizeDeadline(raw: string): string          // digits only, clamped to MAX_DE
 toNumber(s: string): number                    // "" | "." → 0; ".5" → 0.5
 // lib/format.ts
 formatAmount(n: number): string                // ≤ 6 sig digits, no separators, no exponent
-formatBalance(n: number): string               // ≤ 8 decimals, trailing zeros trimmed (presets, storage)
 formatUsd(n: number): string                   // $0, <$0.01, $1,234.56, $2.00B
 formatPercent(n: number): string               // 0.5%, 1%, 5.51%
 formatRate(q: Quote, inverted: boolean, prices: Prices): string // "1 ETH = 2000 USDC ($2,000.00)"

@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { atomWithQuery, queryClientAtom } from "jotai-tanstack-query";
-import type { Address } from "viem";
+import { formatUnits, type Address } from "viem";
 
 import {
   QUOTER_V2_ADDRESS,
@@ -30,7 +30,7 @@ export const sepoliaBalancesQueryAtom = atomWithQuery((get) => {
   const address = get(sepoliaAddressAtom);
   return {
     queryKey: ["sepolia-balances", address?.toLowerCase() ?? "none"],
-    queryFn: async (): Promise<Record<string, number>> => {
+    queryFn: async (): Promise<Record<string, string>> => {
       if (!address) return {};
       const { wagmiConfig } = await loadAppKit();
       const { getBalance, readContracts } = await import("wagmi/actions");
@@ -65,88 +65,23 @@ export const sepoliaBalancesQueryAtom = atomWithQuery((get) => {
         readContracts(wagmiConfig, { contracts }).catch(() => null),
       ]);
 
-      const result: Record<string, number> = {
-        ETH: ethBal ? fromRawUnits(ethBal.value, 18) : 0,
-        WETH: 0,
-        USDC: 0,
-        UNI: 0,
+      // Exact decimal strings, no float rounding
+      const result: Record<string, string> = {
+        ETH: ethBal ? formatUnits(ethBal.value, 18) : "0",
+        WETH: "0",
+        USDC: "0",
+        UNI: "0",
       };
 
       if (erc20Results && Array.isArray(erc20Results)) {
         if (erc20Results[0]?.status === "success") {
-          result.WETH = fromRawUnits(erc20Results[0].result as bigint, 18);
+          result.WETH = formatUnits(erc20Results[0].result as bigint, 18);
         }
         if (erc20Results[1]?.status === "success") {
-          result.USDC = fromRawUnits(erc20Results[1].result as bigint, 6);
+          result.USDC = formatUnits(erc20Results[1].result as bigint, 6);
         }
         if (erc20Results[2]?.status === "success") {
-          result.UNI = fromRawUnits(erc20Results[2].result as bigint, 18);
-        }
-      }
-
-      return result;
-    },
-    enabled: Boolean(address),
-    staleTime: 10_000,
-  };
-});
-
-// ---- Raw Balances (BigInt) for precise comparisons ----
-export const sepoliaRawBalancesQueryAtom = atomWithQuery((get) => {
-  const address = get(sepoliaAddressAtom);
-  return {
-    queryKey: ["sepolia-raw-balances", address?.toLowerCase() ?? "none"],
-    queryFn: async (): Promise<Record<string, bigint>> => {
-      if (!address) return {};
-      const { wagmiConfig } = await loadAppKit();
-      const { getBalance, readContracts } = await import("wagmi/actions");
-
-      const ethPromise = getBalance(wagmiConfig, {
-        address: address as Address,
-      }).catch(() => null);
-
-      const contracts = [
-        {
-          address: WETH_ADDRESS as Address,
-          abi: erc20Abi,
-          functionName: "balanceOf",
-          args: [address as Address],
-        },
-        {
-          address: USDC_ADDRESS as Address,
-          abi: erc20Abi,
-          functionName: "balanceOf",
-          args: [address as Address],
-        },
-        {
-          address: UNI_ADDRESS as Address,
-          abi: erc20Abi,
-          functionName: "balanceOf",
-          args: [address as Address],
-        },
-      ] as const;
-
-      const [ethBal, erc20Results] = await Promise.all([
-        ethPromise,
-        readContracts(wagmiConfig, { contracts }).catch(() => null),
-      ]);
-
-      const result: Record<string, bigint> = {
-        ETH: ethBal?.value ?? 0n,
-        WETH: 0n,
-        USDC: 0n,
-        UNI: 0n,
-      };
-
-      if (erc20Results && Array.isArray(erc20Results)) {
-        if (erc20Results[0]?.status === "success") {
-          result.WETH = erc20Results[0].result as bigint;
-        }
-        if (erc20Results[1]?.status === "success") {
-          result.USDC = erc20Results[1].result as bigint;
-        }
-        if (erc20Results[2]?.status === "success") {
-          result.UNI = erc20Results[2].result as bigint;
+          result.UNI = formatUnits(erc20Results[2].result as bigint, 18);
         }
       }
 

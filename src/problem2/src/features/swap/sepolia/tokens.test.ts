@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { GAS_RESERVE } from "../constants.ts";
 import {
   checkGasReserve,
   findSepoliaToken,
   fromRawAmount,
   fromRawUnits,
-  getMaxSellAmount,
   isSepoliaToken,
   SEPOLIA_TOKENS,
   toRawAmount,
@@ -41,25 +39,42 @@ describe("sepolia tokens and units", () => {
     expect(fromRawAmount(50000000n, "USDC")).toBe(50);
   });
 
-  it("calculates max sell amount with gas reserve", () => {
-    expect(getMaxSellAmount("ETH", 1.0)).toBe(1.0 - GAS_RESERVE);
-    expect(getMaxSellAmount("ETH", 0.001)).toBe(0);
-    expect(getMaxSellAmount("USDC", 500)).toBe(500);
-  });
-
   it("validates gas reserve correctly for ETH and ERC20 sells", () => {
     // Selling ETH
     // If balance is 1 ETH, sell 0.998 ETH -> sell + 0.002 = 1.0 -> ok
-    expect(checkGasReserve("ETH", 0.998, 1.0).hasEnoughGas).toBe(true);
+    expect(
+      checkGasReserve("ETH", toRawUnits("0.998", 18), toRawUnits("1.0", 18))
+        .hasEnoughGas,
+    ).toBe(true);
     // If balance is 1 ETH, sell 0.999 ETH -> sell + 0.002 = 1.001 > 1.0 -> gas short
-    expect(checkGasReserve("ETH", 0.999, 1.0).hasEnoughGas).toBe(false);
-    expect(checkGasReserve("ETH", 0.999, 1.0).isGasShort).toBe(true);
+    expect(
+      checkGasReserve("ETH", toRawUnits("0.999", 18), toRawUnits("1.0", 18))
+        .hasEnoughGas,
+    ).toBe(false);
+    expect(
+      checkGasReserve("ETH", toRawUnits("0.999", 18), toRawUnits("1.0", 18))
+        .isGasShort,
+    ).toBe(true);
 
     // Selling ERC20 (e.g. USDC)
     // If eth balance >= 0.002 -> ok
-    expect(checkGasReserve("USDC", 100, 0.005).hasEnoughGas).toBe(true);
+    expect(
+      checkGasReserve("USDC", toRawUnits("100", 18), toRawUnits("0.005", 18))
+        .hasEnoughGas,
+    ).toBe(true);
     // If eth balance < 0.002 -> gas short
-    expect(checkGasReserve("USDC", 100, 0.001).hasEnoughGas).toBe(false);
-    expect(checkGasReserve("USDC", 100, 0.001).isGasShort).toBe(true);
+    expect(
+      checkGasReserve("USDC", toRawUnits("100", 18), toRawUnits("0.001", 18))
+        .hasEnoughGas,
+    ).toBe(false);
+    expect(
+      checkGasReserve("USDC", toRawUnits("100", 18), toRawUnits("0.001", 18))
+        .isGasShort,
+    ).toBe(true);
+    // Exact: float 0.007 + 0.002 > 0.009 was wrongly "short"
+    expect(
+      checkGasReserve("ETH", toRawUnits("0.007", 18), toRawUnits("0.009", 18))
+        .isGasShort,
+    ).toBe(false);
   });
 });

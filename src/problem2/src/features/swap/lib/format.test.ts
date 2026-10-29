@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { Quote } from "../types.ts";
 import {
   formatAmount,
-  formatBalance,
   formatPercent,
   formatRate,
   formatUsd,
@@ -17,14 +16,6 @@ it("formatAmount", () => {
   expect(formatAmount(0.0005)).toBe("0.0005");
   expect(formatAmount(0)).toBe("0");
   expect(formatAmount(1234567.89)).toBe("1234570");
-});
-
-it("formatBalance", () => {
-  expect(formatBalance(0.375)).toBe("0.375");
-  expect(formatBalance(1.125)).toBe("1.125");
-  expect(formatBalance(1.5)).toBe("1.5");
-  expect(formatBalance(1000)).toBe("1000");
-  expect(formatBalance(0.123456789)).toBe("0.12345679");
 });
 
 describe("formatUsd", () => {

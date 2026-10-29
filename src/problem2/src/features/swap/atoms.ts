@@ -1,18 +1,18 @@
 import { atom, getDefaultStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { atomWithQuery, queryClientAtom } from "jotai-tanstack-query";
+import { formatUnits } from "viem";
 
 import { fetchPrices } from "./api/fetchPrices.ts";
 import {
   AUTO_SLIPPAGE,
   DEFAULT_DEADLINE,
   DEFAULT_SELL,
-  GAS_RESERVE,
   TOUR_KEY,
 } from "./constants.ts";
 import { sanitizeAmount, toNumber } from "./lib/amount.ts";
 import { convert, minReceived } from "./lib/convert.ts";
-import { formatAmount, formatBalance } from "./lib/format.ts";
+import { formatAmount } from "./lib/format.ts";
 import {
   fetchUniswapV3Quote,
   type SepoliaQuoteResult,
@@ -20,8 +20,10 @@ import {
 import { isWrongChainAtom } from "./sepolia/sepoliaWalletAtoms.ts";
 import {
   checkGasReserve,
+  GAS_RESERVE_WEI,
   isSepoliaToken,
   SEPOLIA_TOKENS,
+  toRawUnits,
 } from "./sepolia/tokens.ts";
 import type {
   Prices,
@@ -32,8 +34,8 @@ import type {
   Toast,
 } from "./types.ts";
 import {
-  balancesAtom,
   connectedAtom,
+  exactBalancesAtom,
   registerModeChangeCallback,
   walletModeAtom,
 } from "./walletAtoms.ts";
@@ -93,7 +95,12 @@ export const typedAmountAtom = atom("");
 export const debouncedTypedAmountAtom = atom("");
 export const pickerSideAtom = atom<Side | null>(null);
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+// Timer lives in an atom, so each store has its own debounce.
+const debounceTimerAtom = atom<ReturnType<typeof setTimeout> | undefined>();
+const cancelDebounceAtom = atom(null, (get, set) => {
+  clearTimeout(get(debounceTimerAtom));
+  set(debounceTimerAtom, undefined);
+});
 
 // Register mode switch reset callback
 registerModeChangeCallback((mode) => {
@@ -212,37 +219,34 @@ export const setAmountAtom = atom(
     const sanitized = sanitizeAmount(raw);
     set(typedAmountAtom, sanitized);
 
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
+    set(cancelDebounceAtom);
     if (sanitized === "" || toNumber(sanitized) <= 0) {
       set(debouncedTypedAmountAtom, sanitized);
     } else {
-      debounceTimer = setTimeout(() => {
-        set(debouncedTypedAmountAtom, sanitized);
-      }, 300);
+      set(
+        debounceTimerAtom,
+        setTimeout(() => set(debouncedTypedAmountAtom, sanitized), 300),
+      );
     }
   },
 );
 
 export const setPresetAtom = atom(null, (get, set, percent: number) => {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-    debounceTimer = null;
-  }
-  const mode = get(walletModeAtom);
+  set(cancelDebounceAtom);
   const sell = get(sellTokenAtom);
-  const balance = sell ? (get(balancesAtom)?.[sell] ?? 0) : 0;
+  const balance = toRawUnits(
+    (sell && get(exactBalancesAtom)?.[sell]) || "0",
+    18,
+  );
   set(typedSideAtom, "sell");
 
-  let amount: number;
-  if (mode === "sepolia" && percent === 100 && sell === "ETH") {
-    amount = Math.max(0, balance - GAS_RESERVE);
-  } else {
-    amount = (balance * percent) / 100;
+  let amount = (balance * BigInt(percent)) / 100n;
+  if (get(walletModeAtom) === "sepolia" && percent === 100 && sell === "ETH") {
+    amount -= GAS_RESERVE_WEI;
   }
 
-  const formatted = formatBalance(amount);
+  // Floor to the 8-decimal input cap, so Max never exceeds the balance.
+  const formatted = amount > 0n ? formatUnits(amount / 10n ** 10n, 8) : "0";
   set(typedAmountAtom, formatted);
   set(debouncedTypedAmountAtom, formatted);
 });
@@ -266,10 +270,7 @@ export const pickTokenAtom = atom(
 );
 
 export const resetAmountsAtom = atom(null, (_get, set) => {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-    debounceTimer = null;
-  }
+  set(cancelDebounceAtom);
   set(typedSideAtom, "sell");
   set(typedAmountAtom, "");
   set(debouncedTypedAmountAtom, "");
@@ -298,30 +299,25 @@ export const minReceivedAtom = atom((get) => {
 
 // ---- Validation ----
 
+// Exact compare in 18-decimal units: the sell amount shown (typed, or quoted in
+// exact-out) against the balance string. No floats.
+const units = (s = "0") => toRawUnits(s, 18);
+
 export const gasShortAtom = atom((get) => {
-  const mode = get(walletModeAtom);
-  if (mode !== "sepolia") return false;
+  if (get(walletModeAtom) !== "sepolia") return false;
   const sell = get(sellTokenAtom);
-  const balances = get(balancesAtom);
-  const amount = toNumber(get(typedAmountAtom));
-  if (!sell || !balances || amount <= 0) return false;
-  const ethBalance = balances["ETH"] ?? 0;
-  return checkGasReserve(sell, amount, ethBalance).isGasShort;
+  const balances = get(exactBalancesAtom);
+  if (!sell || !balances) return false;
+  const amount = units(get(sellAmountAtom));
+  return checkGasReserve(sell, amount, units(balances.ETH)).isGasShort;
 });
 
 export const insufficientAtom = atom((get) => {
-  const mode = get(walletModeAtom);
   const sell = get(sellTokenAtom);
-  const balances = get(balancesAtom);
-  const amount = toNumber(get(typedAmountAtom));
-  if (!sell || !balances || amount <= 0) return false;
-
-  const currentBalance = balances[sell] ?? 0;
-  const isBalanceShort = amount > currentBalance;
-  if (mode === "sepolia") {
-    return isBalanceShort || get(gasShortAtom);
-  }
-  return isBalanceShort;
+  const balances = get(exactBalancesAtom);
+  const amount = units(get(sellAmountAtom));
+  if (!sell || !balances || amount <= 0n) return false;
+  return amount > units(balances[sell]) || get(gasShortAtom);
 });
 
 const falseAtom = atom(false);

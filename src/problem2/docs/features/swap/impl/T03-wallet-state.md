@@ -18,7 +18,7 @@ just keep `walletModeAtom` so the switch exists.
 - [x] `disconnectAtom`: `connected: false`, balances + activity kept
 - [x] Changing `walletModeAtom` disconnects
 - [x] `balancesAtom`: numbers, missing symbol = 0; `null` when disconnected
-- [x] `applySwapAtom(activity)`: re-checks sell balance; if too low returns false and changes nothing; else subtracts/adds, stores with `formatBalance` (≤ 8 decimals), prepends activity
+- [x] `applySwapAtom(activity)`: re-checks sell balance; if too low returns false and changes nothing; else subtracts/adds, exact bigint maths in 8-decimal units, prepends activity
 - [x] Tests with `createStore()` and a stubbed `localStorage` (Vitest `node` env has none): defaults, corrupt JSON, disconnect keeps data, swap math, too-low swap rejected
 
 ## Verify

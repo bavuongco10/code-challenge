@@ -1,11 +1,12 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createStore } from "jotai";
 import { queryClientAtom } from "jotai-tanstack-query";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   amountsAtom,
   buyTokenAtom,
+  debouncedTypedAmountAtom,
   flipAtom,
   insufficientAtom,
   minReceivedAtom,
@@ -159,6 +160,21 @@ describe("tokens", () => {
   });
 });
 
+describe("debounce", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("each store debounces on its own", () => {
+    vi.useFakeTimers();
+    const a = freshStore();
+    const b = freshStore();
+    a.set(setAmountAtom, "sell", "1");
+    b.set(setAmountAtom, "sell", "2"); // must not cancel a's timer
+    vi.advanceTimersByTime(300);
+    expect(a.get(debouncedTypedAmountAtom)).toBe("1");
+    expect(b.get(debouncedTypedAmountAtom)).toBe("2");
+  });
+});
+
 describe("presets", () => {
   it.each([
     [25, "0.375"],
@@ -227,6 +243,20 @@ describe("submit state", () => {
     s.set(setAmountAtom, "buy", "4000"); // needs 2 ETH
     expect(s.get(insufficientAtom)).toBe(true);
     expect(s.get(submitStateAtom)).toBe("insufficient");
+  });
+
+  it("exact-out compares the quoted sell amount, not the typed buy amount", async () => {
+    const s = await ready();
+    s.set(setAmountAtom, "buy", "100"); // needs 0.05 of 1.5 ETH
+    expect(s.get(insufficientAtom)).toBe(false);
+  });
+
+  it("insufficient compares exactly at the balance edge", async () => {
+    const s = await ready();
+    s.set(setAmountAtom, "sell", "1.50000000");
+    expect(s.get(insufficientAtom)).toBe(false);
+    s.set(setAmountAtom, "sell", "1.50000001");
+    expect(s.get(insufficientAtom)).toBe(true);
   });
 
   it("insufficient uses the sell token balance", async () => {

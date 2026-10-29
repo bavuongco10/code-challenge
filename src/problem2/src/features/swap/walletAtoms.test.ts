@@ -83,6 +83,19 @@ describe("wallet atoms", () => {
     const w = s.get(walletAtom)!;
     expect(w.balances.ETH).toBe("1.4");
     expect(w.balances.USDC).toBe("1000.12345679");
+  });
+
+  it("swap math is exact on large balances", () => {
+    const s = createStore();
+    s.set(connectAtom);
+    const w = s.get(walletAtom)!;
+    s.set(walletAtom, {
+      ...w,
+      balances: { ...w.balances, ETH: "1234567890.12345678" },
+    });
+    expect(s.set(applySwapAtom, act("0.00000001", "0.3"))).toBe(true);
+    expect(s.get(walletAtom)!.balances.ETH).toBe("1234567890.12345677");
+    expect(s.get(walletAtom)!.balances.USDC).toBe("1000.3");
     s.set(applySwapAtom, { ...act("0.1", "1"), at: 2 });
     expect(s.get(walletAtom)!.activity.map((a) => a.at)).toEqual([2, 1]);
   });

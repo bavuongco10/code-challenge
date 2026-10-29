@@ -54,22 +54,18 @@ export function fromRawAmount(raw: bigint, symbol: string): number {
   return fromRawUnits(raw, token.decimals);
 }
 
-export function getMaxSellAmount(symbol: string, balance: number): number {
-  if (symbol === "ETH") {
-    return Math.max(0, balance - GAS_RESERVE);
-  }
-  return balance;
-}
+export const GAS_RESERVE_WEI = toRawUnits(GAS_RESERVE, 18);
 
+/** Amounts in wei-scale (18 decimals) units. */
 export function checkGasReserve(
   sellSymbol: string,
-  sellAmount: number,
-  ethBalance: number,
+  sellAmount: bigint,
+  ethBalance: bigint,
 ): { hasEnoughGas: boolean; isGasShort: boolean } {
-  if (sellSymbol === "ETH") {
-    const isGasShort = sellAmount > 0 && sellAmount + GAS_RESERVE > ethBalance;
-    return { hasEnoughGas: !isGasShort, isGasShort };
-  }
-  const isGasShort = sellAmount > 0 && ethBalance < GAS_RESERVE;
+  const isGasShort =
+    sellAmount > 0n &&
+    (sellSymbol === "ETH"
+      ? sellAmount + GAS_RESERVE_WEI > ethBalance
+      : ethBalance < GAS_RESERVE_WEI);
   return { hasEnoughGas: !isGasShort, isGasShort };
 }

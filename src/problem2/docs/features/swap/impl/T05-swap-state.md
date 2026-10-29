@@ -18,7 +18,7 @@ All swap state and rules as atoms, so the UI tasks (T07–T11) only render and c
 - [x] `quoteAtom` null unless both tokens and `toNumber(typed) > 0`
 - [x] `pickTokenAtom`: same token as the other side → swap sides; closes picker
 - [x] `flipAtom`: swap tokens, typed amount moves with its token (typed side flips)
-- [x] `setPresetAtom(p)`: `formatBalance(balance × p / 100)` into sell, exact-in
+- [x] `setPresetAtom(p)`: exact bigint `balance × p / 100`, floored to 8 decimals, into sell, exact-in
 - [x] Slippage: `slippageAtom` = Auto 0.5 when input `""`/0; `slippageLevelAtom` `>5.5 && <20` high, `≥20` very-high
 - [x] `minReceivedAtom` = `minReceived(quote.buyAmount, slippage)`
 - [x] `insufficientAtom`: connected and quote.sellAmount > sell balance (works for exact-out)

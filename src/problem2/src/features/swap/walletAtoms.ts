@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { formatUnits } from "viem";
 
 import {
   DEMO_ADDRESS,
@@ -7,7 +8,6 @@ import {
   WALLET_KEY,
   WALLET_MODE_KEY,
 } from "./constants.ts";
-import { formatBalance } from "./lib/format.ts";
 import {
   addSepoliaActivityAtom,
   disconnectSepoliaAtom,
@@ -21,6 +21,7 @@ import {
   sepoliaBalancesQueryAtom,
   sepoliaInvalidateAtom,
 } from "./sepolia/sepoliaQueryAtoms.ts";
+import { toRawUnits } from "./sepolia/tokens.ts";
 import type { Activity, Wallet, WalletMode } from "./types.ts";
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -95,23 +96,25 @@ export const connectedAtom = atom((get) => {
   return get(sepoliaConnectedAtom);
 });
 
-// Missing symbol = no balance: read with `balances[sym] ?? 0`.
+// Exact decimal strings, for maths and comparisons. Missing symbol = no balance.
+export const exactBalancesAtom = atom(
+  (get): Partial<Record<string, string>> | null => {
+    if (get(walletModeAtom) === "demo") {
+      const w = get(demoWalletAtom);
+      return w?.connected ? w.balances : null;
+    }
+    if (!get(sepoliaConnectedAtom) || !get(sepoliaAddressAtom)) return null;
+    return get(sepoliaBalancesQueryAtom).data ?? null;
+  },
+);
+
+// Numbers for display only: read with `balances[sym] ?? 0`.
 export const balancesAtom = atom((get) => {
-  const mode = get(walletModeAtom);
-  if (mode === "demo") {
-    const w = get(demoWalletAtom);
-    if (!w?.connected) return null;
-    return Object.fromEntries(
-      Object.entries(w.balances).map(([sym, b]) => [sym, Number(b)]),
-    ) as Partial<Record<string, number>>;
-  }
-
-  const connected = get(sepoliaConnectedAtom);
-  const address = get(sepoliaAddressAtom);
-  if (!connected || !address) return null;
-
-  const query = get(sepoliaBalancesQueryAtom);
-  return query.data ?? null;
+  const b = get(exactBalancesAtom);
+  if (!b) return null;
+  return Object.fromEntries(
+    Object.entries(b).map(([sym, v]) => [sym, Number(v)]),
+  ) as Partial<Record<string, number>>;
 });
 
 export const walletActivityAtom = atom((get): Activity[] => {
@@ -137,16 +140,11 @@ export const walletAtom = atom(
     const address = get(sepoliaAddressAtom);
     if (!connected || !address) return null;
 
-    const balances = get(balancesAtom) ?? {};
-    const activity = get(sepoliaActivityAtom);
-
     return {
       connected,
       address,
-      balances: Object.fromEntries(
-        Object.entries(balances).map(([k, v]) => [k, String(v ?? 0)]),
-      ),
-      activity,
+      balances: { ...get(exactBalancesAtom) } as Record<string, string>,
+      activity: get(sepoliaActivityAtom),
     };
   },
   (_get, set, update: Wallet | null) => {
@@ -197,17 +195,17 @@ export const applySwapAtom = atom(null, (get, set, a: Activity): boolean => {
   if (mode === "demo") {
     const w = get(demoWalletAtom);
     if (!w?.connected) return false;
-    const sell = Number(w.balances[a.sell] ?? 0);
-    const amount = Number(a.sellAmount);
-    if (!(amount > 0) || amount > sell) return false;
+    // Exact maths in 8-decimal units (storage keeps at most 8 decimals)
+    const units = (s = "0") => toRawUnits(s, 8);
+    const sell = units(w.balances[a.sell]);
+    const amount = units(a.sellAmount);
+    if (amount <= 0n || amount > sell) return false;
     set(demoWalletAtom, {
       ...w,
       balances: {
         ...w.balances,
-        [a.sell]: formatBalance(sell - amount),
-        [a.buy]: formatBalance(
-          Number(w.balances[a.buy] ?? 0) + Number(a.buyAmount),
-        ),
+        [a.sell]: formatUnits(sell - amount, 8),
+        [a.buy]: formatUnits(units(w.balances[a.buy]) + units(a.buyAmount), 8),
       },
       activity: [a, ...w.activity],
     });

@@ -16,7 +16,6 @@ All number rules as pure, unit-tested functions. No React, no atoms.
 - [x] `sanitizeDeadline`: digits only (`1.5`→`15`), clamp to 4320
 - [x] `toNumber`: `""`/`"."` → 0
 - [x] `formatAmount`: ≤ 6 significant digits, no separators, never exponent (`0.00000016`, `2000000000`, `0.617284`)
-- [x] `formatBalance`: ≤ 8 decimals, trailing zeros trimmed (`0.375`, `1.125`)
 - [x] `formatUsd`: `$0` for 0, `<$0.01`, `$1,234.56` below 1M, compact ≥ 1M with 2 decimals (`$2.00B`, `$76.27M`)
 - [x] `formatPercent`: `0.5%`, `1%`, `5.51%`
 - [x] `formatRate(quote, inverted, prices)`: `1 ETH = 2000 USDC ($2,000.00)`; inverted `1 USDC = 0.0005 ETH ($1.00)`
