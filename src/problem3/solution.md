@@ -7,7 +7,7 @@
 1. **`lhsPriority` doesn't exist.** The filter calls `getPriority` and stores the result in `balancePriority`, then checks `lhsPriority`. That's a TS compile error, or a `ReferenceError` at runtime. The check should use `balancePriority`.
 2. **The filter is backwards.** It keeps balances with `amount <= 0` and drops every positive balance. So the page shows only empty or negative wallets. It should keep `amount > 0`.
 3. **`blockchain` isn't on `WalletBalance`.** `balance.blockchain` is used, but the interface doesn't declare it. The `any` type on `getPriority(blockchain: any)` hides the error. Add `blockchain` to the interface with a union type and drop `any`.
-4. **The sort comparator returns `undefined` when two priorities are equal.** A comparator must return a number for every pair. Otherwise the order is inconsistent between engines. Use `rightPriority - leftPriority`.
+4. **The sort comparator returns `undefined` when two priorities are equal.** At runtime that's harmless: the spec coerces `undefined` to `NaN`, treats it as `0` (equal), and `sort` is stable since ES2019. But with `strictNullChecks` the type `-1 | 1 | undefined` isn't assignable to `number`, so it won't compile. Use `rightPriority - leftPriority`.
 5. **`rows` maps over the wrong array.** `rows` is built from `sortedBalances`, but each item is typed as `FormattedWalletBalance`. The type is false, so `balance.formatted` is always `undefined`, and `formattedBalances` is computed and never used. Build the rows from the formatted list.
 6. **`classes` is never defined.** There's no `useStyles()` or import, so this is a `ReferenceError`. The refactor drops `className`; the row styles belong in `WalletRow` itself.
 7. **`prices[balance.currency]` can be `undefined`.** A token with no price gives `NaN` for the USD value. Don't fall back to `0` either: `$0.00` claims the holding is worthless. Pass `undefined` and let the row show a placeholder (`—`).
@@ -15,7 +15,7 @@
 ### Wasted work and anti-patterns
 
 8. **`prices` is in the `useMemo` deps but isn't used inside.** Prices usually update often (polling or a websocket). Each update re-runs the filter and sort for nothing. The only deps should be `[balances]`.
-9. **`getPriority` is defined inside the component.** It's recreated on every render, even though it doesn't use props or state. Move it out of the component as a constant lookup table. That also removes the duplicate `Zilliqa`/`Neo` cases.
+9. **`getPriority` is defined inside the component.** It's recreated on every render, even though it doesn't use props or state. Move it out of the component as a constant lookup table.
 10. **Priority is computed more than once per item.** It's computed once in the filter, then twice per comparison in the sort, which is O(n log n) calls. Compute it once per balance, then filter and sort on that value.
 11. **`formattedBalances` and `rows` aren't memoized.** They're rebuilt on every render, including renders that have nothing to do with balances. Memoize the formatting together with the sort, and memoize rows on `[formatted, prices]`.
 12. **`key={index}`.** Index keys break React's list reconciliation when the list is filtered or re-sorted, which happens here. Row state or DOM can end up attached to the wrong item. Use a stable id such as `` `${blockchain}-${currency}` ``.
