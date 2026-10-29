@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs each problem's `pnpm check` when it has staged changes. Skip with `git commit --no-verify`.
+for p in problem2 problem5; do
+  git diff --cached --quiet -- "src/$p" || (cd "src/$p" && pnpm check) || exit 1
+done

@@ -1,4 +1,0 @@
-#!/bin/sh
-# Runs `pnpm check` when src/problem2 has staged changes. Skip with `git commit --no-verify`.
-git diff --cached --quiet -- src/problem2 && exit 0
-cd src/problem2 && pnpm check

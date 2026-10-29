@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "check": "tsc -b && oxlint && prettier --check .",
-    "prepare": "git config core.hooksPath src/problem2/.githooks",
+    "prepare": "git config core.hooksPath .githooks",
     "test:e2e": "playwright test",
     "verify": "pnpm check && vitest run --passWithNoTests && vite build && playwright test"
   },
