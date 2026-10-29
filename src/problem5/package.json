@@ -1,0 +1,44 @@
+{
+  "name": "problem5",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.local src/server.ts",
+    "build": "tsc && drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "test": "node --test 'src/**/*.test.ts'",
+    "typecheck": "tsc",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "check": "tsc && oxlint && oxfmt --check",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "dependencies": {
+    "@neon/config": "^1.9.5",
+    "@neon/env": "^1.6.6",
+    "@scalar/express-api-reference": "^0.10.31",
+    "@vercel/functions": "^3.10.4",
+    "drizzle-orm": "^0.45.4",
+    "drizzle-zod": "^0.8.3",
+    "express": "^5.3.0",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7",
+    "zod-openapi": "^6.0.2"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.12",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "oxfmt": "^0.75.0",
+    "oxlint": "^1.90.0",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@11.7.0"
+}

@@ -1,0 +1,14 @@
+node_modules
+*.db
+.env
+.neon
+.env.local
+.vercel
+.env*
+!.env.example
+
+# Agents: share hooks/settings (overrides a global `.claude/` ignore), keep personal files local
+!.claude/
+.claude/settings.local.json
+CLAUDE.local.md
+.claude/db-actions.log
