@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "types": [],
+    "skipLibCheck": true
+  },
+  "include": ["*.ts"]
+}

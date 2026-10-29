@@ -9,17 +9,33 @@ test("known values", () => {
     for (const f of all) for (const [n, s] of [[0, 0], [1, 1], [5, 15], [-5, -15], [100, 5050]]) assert.equal(f(n), s);
 });
 
-test("all three agree on -500..500", () => {
-    for (let n = -500; n <= 500; n++) {
-        assert.equal(sum_to_n_b(n), sum_to_n_a(n));
-        assert.equal(sum_to_n_c(n), sum_to_n_a(n));
-    }
+// Independent oracle: BigInt loop, shares no code with the solutions.
+const oracle = (n: number): bigint => {
+    let s = 0n;
+    for (let i = 1n; i <= BigInt(Math.abs(n)); i++) s += i;
+    return n < 0 ? -s : s;
+};
+
+test("all three match an independent BigInt oracle", () => {
+    const ns = [10_000, 123_456, -99_999];
+    for (let n = -500; n <= 500; n++) ns.push(n);
+    for (const f of all) for (const n of ns) assert.equal(BigInt(f(n)), oracle(n), `${f.name}(${n})`);
 });
 
-test("boundary is exact and safe", () => {
-    assert.equal(sum_to_n_a(MAX_N), 9_007_199_187_632_128);
-    assert.equal(sum_to_n_c(MAX_N), sum_to_n_a(MAX_N));
-    assert.equal(sum_to_n_a(-MAX_N), -sum_to_n_a(MAX_N));
+test("zero is +0", () => {
+    for (const f of all) assert.ok(Object.is(f(0), 0) && Object.is(f(-0), 0), f.name);
+});
+
+test("boundary +-MAX_N is exact and safe", () => {
+    const m = BigInt(MAX_N);
+    const expected = (m * (m + 1n)) / 2n; // closed form
+    for (const f of all) {
+        for (const [n, e] of [[MAX_N, expected], [-MAX_N, -expected]] as [number, bigint][]) {
+            const r = f(n);
+            assert.ok(Number.isSafeInteger(r), `${f.name}(${n}) not safe`);
+            assert.equal(BigInt(r), e, `${f.name}(${n})`);
+        }
+    }
 });
 
 test("rejects out-of-contract input", () => {

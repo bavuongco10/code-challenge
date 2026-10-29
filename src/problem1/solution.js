@@ -26,15 +26,16 @@ var sum_to_n_b = function(n) {
     return n < 0 ? -sum : sum;
 };
 
+const sumRange = (lo, hi) => {
+    if (lo > hi) return 0;
+    if (lo === hi) return lo;
+    const mid = Math.floor((lo + hi) / 2);
+    return sumRange(lo, mid) + sumRange(mid + 1, hi);
+};
+
 // (c) Divide and conquer: split the range in half and recurse.
-// Time O(|n|), space O(log |n|) call stack, so it never overflows the stack.
+// T(n) = 2T(n/2) + O(1) => O(|n|) time, O(log |n|) call stack (depth ~27 at MAX_N), so no stack overflow.
 var sum_to_n_c = function(n) {
-    const sumRange = (lo, hi) => {
-        if (lo > hi) return 0;
-        if (lo === hi) return lo;
-        const mid = Math.floor((lo + hi) / 2);
-        return sumRange(lo, mid) + sumRange(mid + 1, hi);
-    };
     const sum = sumRange(1, magnitude(n));
     return n < 0 ? -sum : sum;
 };
