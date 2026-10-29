@@ -1,5 +1,5 @@
-@US-06 @phase-3
-Feature: US-06 See the top 10
+@extra @phase-3
+Feature: See the top 10
   As a visitor
   I want to see the 10 highest scores
   So that I know who is leading

@@ -1,5 +1,5 @@
-@US-01 @phase-1 @security
-Feature: US-01 Log in with a passkey
+@extra @phase-1 @security
+Feature: Log in with a passkey
   As a player
   I want to log in with a passkey
   So that nobody can steal my password and play as me

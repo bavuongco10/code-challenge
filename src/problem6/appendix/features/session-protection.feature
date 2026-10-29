@@ -1,5 +1,5 @@
-@US-02 @phase-1 @security
-Feature: US-02 My session cannot be misused
+@extra @phase-1 @security
+Feature: My session cannot be misused
   As a player
   I want my session to be rejected when it is missing, forged, stale or used from another site
   So that nobody can earn points in my name

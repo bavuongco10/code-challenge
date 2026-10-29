@@ -1,5 +1,5 @@
-@US-07 @phase-4
-Feature: US-07 Watch the top 10 change live
+@US-03 @phase-4
+Feature: US-03 Watch the top 10 change live
   As a visitor
   I want the scoreboard to update without refreshing the page
   So that I see the competition as it happens

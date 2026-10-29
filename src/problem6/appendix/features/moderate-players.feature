@@ -1,5 +1,5 @@
-@US-08 @phase-5 @security
-Feature: US-08 Moderate cheaters
+@extra @phase-5 @security
+Feature: Moderate cheaters
   As an admin
   I want to flag, ban and correct the scores of cheaters
   So that the scoreboard stays trustworthy

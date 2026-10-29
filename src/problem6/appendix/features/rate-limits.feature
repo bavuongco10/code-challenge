@@ -1,5 +1,5 @@
-@US-09 @phase-5 @security
-Feature: US-09 Scripts cannot flood the service
+@extra @phase-5 @security
+Feature: Scripts cannot flood the service
   As the operator
   I want each player and IP address to be rate limited
   So that bots cannot farm points or overload the servers
