@@ -12,12 +12,17 @@ Live demo: https://bavuongco10.github.io/code-challenge/
 - Flip button, an invertible rate line, details (fee, slippage, minimum received) and settings
 - Wallet: connect, balances, 25/50/75/Max, insufficient-balance checks, review → confirm → toasts, trade log
 - Loading and error states for prices, with Retry
-- Two wallet modes, switched in the header:
-  - **Demo** (phase 1): a fake wallet stored in localStorage
-  - **Sepolia** (phase 2): a real testnet wallet. Connect with Reown AppKit (browser wallets,
-    WalletConnect QR, Coinbase), on-chain Uniswap V3 quotes, approve + swap, pending until mined,
-    Etherscan links. Tokens: ETH, WETH, USDC, UNI
+- Demo wallet: a fake wallet stored in localStorage, so the whole flow works with no setup
 - Guided tour on first visit (replay with the header `?` button)
+
+### Bonus: real Sepolia testnet mode
+
+This goes beyond the brief and is optional. The core form above is complete without it.
+Switch the wallet mode in the header to use a real testnet wallet: connect with Reown AppKit
+(browser wallets, WalletConnect QR, Coinbase), get on-chain Uniswap V3 quotes, approve + swap,
+stay pending until mined, and follow Etherscan links. Tokens: ETH, WETH, USDC, UNI.
+All chain code lives in `src/features/swap/sepolia/` and is lazy-loaded with `import()`, so
+Demo mode never downloads it.
 
 Full rules and edge cases: [`docs/features/swap/plan.md`](docs/features/swap/plan.md).
 
@@ -69,6 +74,20 @@ decisions in [`docs/adr/`](docs/adr/), and the build plans in
 [`phase2-sepolia.md`](docs/features/swap/impl/phase2-sepolia.md) (phase 2). Chain-specific code
 lives in `src/features/swap/sepolia/` and is loaded with `import()` only when Sepolia mode is on.
 The e2e Sepolia spec uses a fake EIP-1193 wallet (`e2e/fakeProvider.ts`) and mocked RPC.
+
+## Non-product files (for reviewers)
+
+These files are part of the development process, not the submission. They are not built or
+shipped and can be skipped when reviewing the code:
+
+| Path                                                                                      | What it is                                                                                   |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `.problem/`                                                                               | The original brief and skeleton, kept untouched for reference                                |
+| `AGENTS.md`, `CLAUDE.md`, `.agents/`, `.claude/`                                          | Instructions, skills and hooks for AI coding assistants (stack rules, commands, conventions) |
+| `docs/features/swap/impl/T00`–`T13`, `automation.md`, `contracts.md`, `phase2-sepolia.md` | Task-by-task build plans and checklists used while building, kept as a record of the process |
+
+The documents worth reading are this README, [`plan.md`](docs/features/swap/plan.md) (the
+behaviour spec) and [`docs/adr/`](docs/adr/) (design decisions).
 
 ## Deploy
 
