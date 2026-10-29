@@ -5,7 +5,8 @@ See `README.md` for setup, endpoints, the docs pipeline and the folder layout. T
 ## Stack
 
 - Express 5 + TypeScript, run directly by Node 24 type stripping (`.nvmrc`). No build step, no bundler.
-- Postgres (Neon) via Drizzle ORM + `pg`. Tests use PGlite (in-process Postgres), no `DATABASE_URL` needed.
+- Postgres (Neon in prod) via Drizzle ORM + `pg`. Without `DATABASE_URL`, app and tests use PGlite (in-process
+  Postgres, `openLocalDb` in `db.ts`) running the real migrations.
 - Validation: zod 4, derived from Drizzle tables with `drizzle-zod`. OpenAPI via `zod-openapi`, UI via `@scalar/express-api-reference`.
 - Lint: oxlint (`.oxlintrc.json`). Format: oxfmt (`.oxfmtrc.json`). No ESLint/Prettier/Biome.
 - Package manager: **pnpm**. Don't use npm/yarn/bun.
@@ -14,7 +15,7 @@ See `README.md` for setup, endpoints, the docs pipeline and the folder layout. T
 
 Run from `src/problem5/`:
 
-- Run: `pnpm start` (reads `.env.local`)
+- Run: `pnpm start` (reads `.env.local` if present; no `DATABASE_URL` = in-memory PGlite)
 - Tests: `pnpm test`; single file: `node --test src/features/resources/resources.test.ts`
 - All static checks (tsc + oxlint + oxfmt --check): `pnpm check`
 - New migration after a schema change: `pnpm db:generate`; apply: `pnpm db:migrate`

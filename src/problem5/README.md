@@ -13,11 +13,13 @@ The Drizzle table in `resources.schema.ts` is the single source of truth: it gen
 
 ```sh
 pnpm install        # also points git core.hooksPath at repo-root .githooks
-neon env pull       # writes DATABASE_URL(_UNPOOLED) to .env.local (or fill it from .env.example)
-pnpm db:migrate     # apply drizzle/ migrations
 pnpm start          # http://localhost:3000/docs
-pnpm test           # node:test against in-process Postgres (PGlite); no DB needed
+pnpm test           # node:test, integration tests against the same in-process Postgres
 ```
+
+No database or env needed: without `DATABASE_URL` the app runs on in-process Postgres ([PGlite](https://pglite.dev)) with the real migrations applied at startup. Data is in-memory and resets on restart.
+
+To use a real Postgres (Neon, as deployed, or any other): put `DATABASE_URL` in `.env.local` (`neon env pull`, or copy `.env.example`), then `pnpm db:migrate && pnpm start`.
 
 ## Schema changes
 
@@ -57,6 +59,17 @@ pnpm check          # tsc + oxlint + oxfmt --check
 ```
 
 The pre-commit hook (`/.githooks/pre-commit`) runs `pnpm check` for every problem that has staged changes. Skip with `--no-verify`.
+
+## AI-assisted workflow
+
+Built with Claude Code; the agent setup is committed so it is reviewable and reproducible:
+
+- `AGENTS.md`: project rules for any coding agent (stack, layering, commands, what not to touch). `CLAUDE.md` just imports it.
+- `.claude/settings.json` wires hooks that enforce those rules:
+  - `protect-files.sh`: blocks edits to `.env*`, `pnpm-lock.yaml`, `node_modules/`, generated `drizzle/`.
+  - `lint-file.sh`: formats and lints each edited file.
+  - `typecheck.sh`: `tsc` must pass before the agent ends its turn.
+  - `log-db.sh`: appends every DB-touching command to `.claude/db-actions.log` (gitignored audit trail).
 
 ## Structure (feature-based)
 

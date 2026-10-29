@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import type { Server } from 'node:http';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
-import { migrate } from 'drizzle-orm/pglite/migrator';
 import { sql } from 'drizzle-orm';
 import { createApp } from '../../create-app.ts';
+import { openLocalDb, type Db } from '../../db.ts';
 
 let server: Server;
 let base: string;
-const db = drizzle(new PGlite());
+let db: Db;
 
 const listen = async (app: ReturnType<typeof createApp>) => {
   const s = app.listen(0);
@@ -19,7 +19,7 @@ const listen = async (app: ReturnType<typeof createApp>) => {
 
 before(async () => {
   // in-process Postgres running the real drizzle migrations; no DATABASE_URL needed
-  await migrate(db, { migrationsFolder: 'drizzle' });
+  db = await openLocalDb();
   ({ s: server, url: base } = await listen(createApp(db)));
 });
 // every test starts from an empty table with ids from 1, so results don't depend on test order

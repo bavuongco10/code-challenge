@@ -1,11 +1,12 @@
 import express from 'express';
 import { createApp } from './create-app.ts';
-import { openDb } from './db.ts';
+import { openDb, openLocalDb } from './db.ts';
 
 // Vercel entrypoint (default export) and local server.
 const url = process.env.DATABASE_URL;
-if (!url) throw new Error('DATABASE_URL is required (run `neon env pull` or see .env.example)');
-const app = createApp(openDb(url), express());
+if (!url && process.env.VERCEL) throw new Error('DATABASE_URL is required on Vercel (see .env.example)');
+if (!url) console.log('DATABASE_URL not set: using in-memory Postgres (PGlite), data resets on restart');
+const app = createApp(url ? openDb(url) : await openLocalDb(), express());
 export default app;
 
 if (!process.env.VERCEL) {
