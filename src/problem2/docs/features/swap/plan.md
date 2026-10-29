@@ -167,7 +167,7 @@ breakdown: [`impl/README.md`](impl/README.md).
 1. `Review` opens `#review-dialog` ("You're swapping"). It shows the sell and buy amounts with
    symbol and USD value (`#review-sell`, `#review-buy`), a "Show more" toggle (`#review-more`)
    that reveals rate, fee, max slippage and minimum received, and `#confirm-swap`.
-   Amounts use the same 6-significant-digit format as the panels.
+   Sell and buy amounts are the exact quoted amounts, same as the panels.
    Closing it (✕, Escape, or a click outside) keeps the form unchanged.
 2. Confirm: `#confirm-swap` shows a spinner and "Confirm in wallet" (`is-confirming`, disabled)
    for about 1 s while the demo wallet "signs".
@@ -224,8 +224,10 @@ Decisions: [ADR 0002](../../adr/0002-sepolia-wallet-and-quotes.md). Build plan: 
 
 ### Number formatting (en-US)
 
-- Computed amount: at most 6 significant digits, no thousands separators, never exponent
-  notation. `2000`, `0.617284`, `0.00000016`, `2000000000`.
+- Computed panel amount and review sell/buy: the exact quoted amount (demo: up to 8 decimals, Sepolia: token
+  decimals), so it matches what the balance check uses. No separators, never exponent.
+- Other amounts (balances, rate, min received): at most 6 significant digits, no thousands
+  separators, never exponent notation. `2000`, `0.617284`, `0.00000016`, `2000000000`.
 - USD value: `$0` when empty. `<$0.01` when greater than 0 but under a cent. `$1,234.56` below
   $1M. Compact at $1M and above: `$2.00B`, `$76.27M`.
 - Rate: `1 ETH = 2000 USDC ($2,000.00)`. The rate number follows the computed-amount

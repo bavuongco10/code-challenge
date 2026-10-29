@@ -11,6 +11,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { memo, useEffect, useState } from "react";
 
 import {
+  exactQuoteAmountsAtom,
   minReceivedAtom,
   pricesAtom,
   quoteAtom,
@@ -44,7 +45,7 @@ function Row({
 }: {
   id: string;
   symbol: string;
-  amount: number;
+  amount: string; // exact
   usd: number;
 }) {
   return (
@@ -52,7 +53,7 @@ function Row({
       <TokenIcon symbol={symbol} size={32} />
       <div className="min-w-0 flex-1 font-mono">
         <div className="truncate text-lg">
-          {formatAmount(amount)} {symbol}
+          {amount} {symbol}
         </div>
         <div className="text-sm text-muted">{formatUsd(usd)}</div>
       </div>
@@ -64,6 +65,7 @@ function ReviewDialogContent({ onClose }: { onClose: () => void }) {
   const quote = useAtomValue(quoteAtom);
   const prices = useAtomValue(pricesAtom);
   const slippage = useAtomValue(slippageAtom);
+  const exact = useAtomValue(exactQuoteAmountsAtom);
   const min = useAtomValue(minReceivedAtom);
   const confirming = useAtomValue(confirmingAtom);
   const confirmingText = useAtomValue(confirmingTextAtom);
@@ -78,7 +80,7 @@ function ReviewDialogContent({ onClose }: { onClose: () => void }) {
     }
   }, [mode]);
 
-  if (prices.state !== "ready" || !quote || min === null) return null;
+  if (prices.state !== "ready" || !quote || !exact || min === null) return null;
   const p = prices.prices;
 
   return (
@@ -106,13 +108,13 @@ function ReviewDialogContent({ onClose }: { onClose: () => void }) {
           <Row
             id="review-sell"
             symbol={quote.sell}
-            amount={quote.sellAmount}
+            amount={exact.sell}
             usd={quote.sellAmount * (p[quote.sell] ?? 0)}
           />
           <Row
             id="review-buy"
             symbol={quote.buy}
-            amount={quote.buyAmount}
+            amount={exact.buy}
             usd={quote.buyAmount * (p[quote.buy] ?? 0)}
           />
           <Disclosure as="div" className="text-sm">

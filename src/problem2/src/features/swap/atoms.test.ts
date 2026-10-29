@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   amountsAtom,
+  exactQuoteAmountsAtom,
   buyTokenAtom,
   debouncedTypedAmountAtom,
   flipAtom,
@@ -256,6 +257,17 @@ describe("submit state", () => {
     s.set(setAmountAtom, "sell", "1.50000000");
     expect(s.get(insufficientAtom)).toBe(false);
     s.set(setAmountAtom, "sell", "1.50000001");
+    expect(s.get(insufficientAtom)).toBe(true);
+  });
+
+  it("exact-out shows the exact quoted sell amount the check uses", async () => {
+    const s = await ready();
+    s.set(setAmountAtom, "buy", "3000.00001"); // 1.500000005 ETH, rounded up
+    expect(s.get(amountsAtom).sell).toBe("1.50000001");
+    expect(s.get(exactQuoteAmountsAtom)).toEqual({
+      sell: "1.50000001",
+      buy: "3000.00001",
+    });
     expect(s.get(insufficientAtom)).toBe(true);
   });
 

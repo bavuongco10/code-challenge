@@ -12,7 +12,6 @@ import {
 } from "./constants.ts";
 import { sanitizeAmount, toNumber } from "./lib/amount.ts";
 import { convert, minReceived } from "./lib/convert.ts";
-import { formatAmount } from "./lib/format.ts";
 import {
   fetchUniswapV3Quote,
   type SepoliaQuoteResult,
@@ -20,6 +19,7 @@ import {
 import { isWrongChainAtom } from "./sepolia/sepoliaWalletAtoms.ts";
 import {
   checkGasReserve,
+  findSepoliaToken,
   GAS_RESERVE_WEI,
   isSepoliaToken,
   SEPOLIA_TOKENS,
@@ -164,12 +164,15 @@ export const quoteAtom = atom((get): Quote | null => {
       (sell === "ETH" && buy === "WETH") ||
       (sell === "WETH" && buy === "ETH")
     ) {
+      const raw = toRawUnits(get(typedAmountAtom), 18);
       return {
         sell,
         buy,
         sellAmount: amount,
         buyAmount: amount,
         rate: 1,
+        sellRaw: raw,
+        buyRaw: raw,
       };
     }
     const q = get(sepoliaQuoteQueryAtom);
@@ -201,16 +204,28 @@ export const quoteAtom = atom((get): Quote | null => {
   };
 });
 
+// Exact strings of the quoted raw amounts (demo: 8 decimals, sepolia: token
+// decimals), so the panels, review and balance check all see the same value.
+export const exactQuoteAmountsAtom = atom((get) => {
+  const q = get(quoteAtom);
+  if (!q) return null;
+  const exact = (sym: string, raw = 0n) =>
+    formatUnits(
+      raw,
+      get(walletModeAtom) === "demo"
+        ? 8
+        : (findSepoliaToken(sym)?.decimals ?? 18),
+    );
+  return { sell: exact(q.sell, q.sellRaw), buy: exact(q.buy, q.buyRaw) };
+});
+
 export const amountsAtom = atom((get) => {
   const side = get(typedSideAtom);
-  const quote = get(quoteAtom);
-  const computed = quote
-    ? formatAmount(side === "sell" ? quote.buyAmount : quote.sellAmount)
-    : "";
+  const exact = get(exactQuoteAmountsAtom);
   const typed = get(typedAmountAtom);
   return side === "sell"
-    ? { sell: typed, buy: computed }
-    : { sell: computed, buy: typed };
+    ? { sell: typed, buy: exact?.buy ?? "" }
+    : { sell: exact?.sell ?? "", buy: typed };
 });
 
 export const sellAmountAtom = atom((get) => get(amountsAtom).sell);
@@ -305,8 +320,8 @@ export const minReceivedAtom = atom((get) => {
 
 // ---- Validation ----
 
-// Exact compare in 18-decimal units: the sell amount shown (typed, or quoted in
-// exact-out) against the balance string. No floats.
+// Exact compare in 18-decimal units: the sell amount shown (typed, or the exact
+// quoted raw amount in exact-out) against the balance string. No floats.
 const units = (s = "0") => toRawUnits(s, 18);
 
 export const gasShortAtom = atom((get) => {

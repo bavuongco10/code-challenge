@@ -73,7 +73,7 @@ test.describe("conversion and number formatting", () => {
     await expect($(page, "#buy-usd")).toHaveText("$0");
   });
 
-  test("tiny results: plain decimals, max 6 significant digits, <$0.01", async ({
+  test("tiny results: plain decimals, never exponent, <$0.01", async ({
     page,
   }) => {
     await pickToken(page, "sell", "SWTH");
@@ -83,11 +83,13 @@ test.describe("conversion and number formatting", () => {
     await expect($(page, "#sell-usd")).toHaveText("<$0.01");
   });
 
-  test("results are rounded to 6 significant digits", async ({ page }) => {
+  test("results show the exact quoted amount (8 decimals)", async ({
+    page,
+  }) => {
     await pickToken(page, "sell", "USDC");
     await pickToken(page, "buy", "ETH");
     await $(page, "#input-amount").fill("1234.5678");
-    await expect($(page, "#output-amount")).toHaveValue("0.617284");
+    await expect($(page, "#output-amount")).toHaveValue("0.6172839");
   });
 
   test("large USD values use compact notation", async ({ page }) => {
