@@ -37,7 +37,7 @@ pgTable('resources', …)  ─drizzle-zod─▶  api.route('get', '/', {      �
 ```
 
 1. **Table → zod.** `resources.schema.ts` defines the Drizzle table; `drizzle-zod` derives `Resource`, `CreateResource`, `UpdateResource` from it, so column types, `varchar` lengths and the `status` enum flow into validation. `.meta({ description, example })` adds the docs text; examples are copied from real API responses.
-2. **Route → operation.** `apiRouter()` (`shared/http.ts`) wraps Express: each `api.route(method, path, { summary, params, query, body, status, response, notFound, badRequest }, handler)` both mounts the handler (parsing `req.params`/`query`/`body` with those schemas, so invalid input → 400) and records a [zod-openapi](https://github.com/samchungy/zod-openapi) operation (plus the standard 400/404/413/415/500 errors) in `paths`.
+2. **Route → operation.** `apiRouter()` (`shared/http.ts`) wraps Express: each `api.route(method, path, { summary, params, query, body, status, response, notFound, badRequest }, handler)` mounts a plain Express `(req, res)` handler (which parses its input with those same schemas; a `ZodError` becomes a 400 in `errorHandler`) and records a [zod-openapi](https://github.com/samchungy/zod-openapi) operation (plus the standard 400/404/413/415/500 errors) in `paths`.
 3. **Operations → OpenAPI.** `create-app.ts` passes `paths` to zod-openapi's `createDocument()`, which converts the zod schemas and hoists `.meta({ id })` ones (`Resource`, `Error`) into `components.schemas`. Served at `GET /openapi.json`.
 4. **Scalar.** `GET /docs` is `@scalar/express-api-reference`, pointed at `/openapi.json` (UI loaded from jsDelivr, version pinned).
 
@@ -81,7 +81,7 @@ src/
   server.ts                   # entry: default-exports the app for Vercel, listens locally
   create-app.ts               # mounts feature routers, builds /openapi.json (zod-openapi), /docs (Scalar), error handling
   db.ts                       # pg Pool -> drizzle; any Postgres URL
-  shared/http.ts              # apiRouter (zod-validated routes recorded as OpenAPI paths), errors
+  shared/http.ts              # apiRouter (routes recorded as OpenAPI paths), error middleware
   features/resources/
     resources.schema.ts       # drizzle table + derived zod schemas/types
     resources.router.ts       # routes: validation schemas + docs metadata

@@ -1,4 +1,4 @@
-import { Router, type NextFunction, type Request, type Response } from 'express';
+import { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 import { z } from 'zod';
 import type { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from 'zod-openapi';
 
@@ -11,13 +11,12 @@ export class HttpError extends Error {
 }
 
 type Method = 'get' | 'post' | 'patch' | 'put' | 'delete';
-type Schema = z.ZodType | undefined;
-type Out<S extends Schema> = S extends z.ZodType ? z.output<S> : undefined;
-type Def<P extends Schema, Q extends Schema, B extends Schema> = {
+// Docs-only description of a route; handlers parse their own input with the same schemas.
+type Def = {
   summary: string;
-  params?: P;
-  query?: Q;
-  body?: B;
+  params?: z.ZodObject;
+  query?: z.ZodObject;
+  body?: z.ZodType;
   status?: number; // success status, default 200
   response?: z.ZodType; // omitted = no body
   notFound?: string; // documents a 404 with this message
@@ -32,13 +31,13 @@ const json = (schema: z.ZodType, example?: unknown) => ({ 'application/json': { 
 const err = (description: string, error: string) => ({ description, content: json(ApiError, { error }) });
 
 // The route definition as a zod-openapi operation; zod-openapi turns it into the OpenAPI spec.
-function operation(tag: string, d: Def<Schema, Schema, Schema>): ZodOpenApiOperationObject {
+function operation(tag: string, d: Def): ZodOpenApiOperationObject {
   return {
     summary: d.summary,
     tags: [tag],
     requestParams: {
-      ...(d.params && { path: d.params as z.ZodObject }),
-      ...(d.query && { query: d.query as z.ZodObject }),
+      ...(d.params && { path: d.params }),
+      ...(d.query && { query: d.query }),
     },
     ...(d.body && { requestBody: { required: true, content: json(d.body) } }),
     responses: {
@@ -54,19 +53,14 @@ function operation(tag: string, d: Def<Schema, Schema, Schema>): ZodOpenApiOpera
   };
 }
 
-// Express router that validates input with zod and records each route as an OpenAPI path,
-// so docs can't drift from the code. Handlers return the response body.
+// Express router that records each route as an OpenAPI path next to its handler, so docs sit beside the code.
+// Handlers are plain Express handlers: parse input with the zod schemas (ZodError -> 400 in errorHandler).
 export function apiRouter(tag: string) {
   const routes = Router();
   const fallback = Router(); // runs after `routes`: known path, unregistered method -> 405
   const router = Router().use(routes, fallback);
   const paths: ZodOpenApiPathsObject = {};
-  function route<P extends Schema, Q extends Schema, B extends Schema>(
-    method: Method,
-    path: string,
-    def: Def<P, Q, B>,
-    handler: (input: { params: Out<P>; query: Out<Q>; body: Out<B> }) => Promise<unknown>,
-  ) {
+  function route(method: Method, path: string, def: Def, handler: RequestHandler) {
     const item = (paths[path.replace(/:(\w+)/g, '{$1}')] ??= {});
     if (!Object.keys(item).length)
       fallback.all(path, (_req, res) => {
@@ -79,16 +73,7 @@ export function apiRouter(tag: string) {
         throw new HttpError(405, 'method not allowed');
       });
     item[method] = operation(tag, def);
-    routes[method](path, async (req: Request, res: Response) => {
-      const out = await handler({
-        params: def.params?.parse(req.params),
-        query: def.query?.parse(req.query),
-        body: def.body?.parse(req.body ?? {}),
-      } as never);
-      res.status(def.status ?? 200);
-      if (def.response) res.json(out);
-      else res.end();
-    });
+    routes[method](path, handler);
   }
   return { router, paths, route };
 }
