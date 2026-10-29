@@ -1,19 +1,29 @@
+// Negative n mirrors positive: sum_to_n(-3) === -(1 + 2 + 3) === -6.
+
 // (a) Gauss formula. Time O(1), space O(1).
 function sum_to_n_a(n: number): number {
     const m = Math.abs(n);
-    return Math.sign(n) * (m * (m + 1)) / 2;
+    const sum = (m * (m + 1)) / 2;
+    return n < 0 ? -sum : sum;
 }
 
-// (b) Loop. Time O(|n|), space O(1).
+// (b) Iterative loop. Time O(|n|), space O(1).
 function sum_to_n_b(n: number): number {
-    const step = n < 0 ? -1 : 1;
     let sum = 0;
-    for (let i = step; Math.abs(i) <= Math.abs(n); i += step) sum += i;
-    return sum;
+    for (let i = 1; i <= Math.abs(n); i++) sum += i;
+    return n < 0 ? -sum : sum;
 }
 
-// (c) Recursion. Time O(|n|), space O(|n|) call stack — overflows for large |n| (~10k+).
+// (c) Divide and conquer: split the range in half and recurse.
+// Time O(|n|), space O(log |n|) call stack, so it never overflows the stack
+// (a naive one-step-per-call recursion overflows at about 10k).
 function sum_to_n_c(n: number): number {
-    if (n === 0) return 0;
-    return n + sum_to_n_c(n - Math.sign(n));
+    const sumRange = (lo: number, hi: number): number => {
+        if (lo > hi) return 0;
+        if (lo === hi) return lo;
+        const mid = Math.floor((lo + hi) / 2);
+        return sumRange(lo, mid) + sumRange(mid + 1, hi);
+    };
+    const sum = sumRange(1, Math.abs(n));
+    return n < 0 ? -sum : sum;
 }
