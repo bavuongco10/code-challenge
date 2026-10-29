@@ -43,14 +43,16 @@ interface FormattedWalletBalance extends WalletBalance {
 }
 
 // Module-level constant: built once, not on every render.
-const PRIORITY: Record<string, number> = {
+const UNKNOWN_PRIORITY = -99;
+const PRIORITY: Readonly<Record<Blockchain, number>> = {
   Osmosis: 100,
   Ethereum: 50,
   Arbitrum: 30,
   Zilliqa: 20,
   Neo: 20,
 };
-const getPriority = (blockchain: string): number => PRIORITY[blockchain] ?? -99;
+// `??` still guards chains outside the union arriving from untyped API data at runtime.
+const getPriority = (blockchain: Blockchain): number => PRIORITY[blockchain] ?? UNKNOWN_PRIORITY;
 
 // Whichever keeps more precision: 2 decimals or 4 significant digits.
 // 1234.5678 -> "1,234.57", 0.004123 -> "0.004123".
@@ -64,7 +66,7 @@ const amountFormat = new Intl.NumberFormat('en-US', {
 const prepareBalances = (balances: readonly WalletBalance[]): FormattedWalletBalance[] =>
   balances
     .map((b) => ({ b, priority: getPriority(b.blockchain) }))
-    .filter(({ b, priority }) => priority > -99 && b.amount > 0)
+    .filter(({ b, priority }) => priority > UNKNOWN_PRIORITY && b.amount > 0)
     .sort((l, r) => r.priority - l.priority)
     .map(({ b }) => ({ ...b, formatted: amountFormat.format(b.amount) }));
 
@@ -112,8 +114,8 @@ export default WalletPage;
 | Original | Refactored | Fixes |
 |---|---|---|
 | `WalletBalance` without `blockchain`; `getPriority(blockchain: any)` | `blockchain: Blockchain` union; typed `getPriority` | 3 |
-| `switch` inside the component, duplicate `20` cases | module-level `PRIORITY` lookup | 9 |
-| `if (lhsPriority > -99) { if (balance.amount <= 0) return true }` | `priority > -99 && b.amount > 0` | 1, 2 |
+| `switch` inside the component, duplicate `20` cases | module-level `PRIORITY: Record<Blockchain, number>` lookup | 9 |
+| `if (lhsPriority > -99) { if (balance.amount <= 0) return true }` | `priority > UNKNOWN_PRIORITY && b.amount > 0` | 1, 2 |
 | comparator returns `-1` / `1` / `undefined` | `r.priority - l.priority` | 4 |
 | `getPriority` called in filter and twice per comparison | computed once per balance, then filter/sort | 10 |
 | `useMemo(..., [balances, prices])` | `useMemo(..., [balances])` | 8 |
